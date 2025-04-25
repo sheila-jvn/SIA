@@ -42,6 +42,11 @@ public class dashboard extends javax.swing.JFrame {
 
         btnMenuGuru.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuGuru.setText("Data Guru");
+        btnMenuGuru.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuGuruActionPerformed(evt);
+            }
+        });
 
         btnMenuAbsensi.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuAbsensi.setText("Absensi \nSiswa");
@@ -112,6 +117,12 @@ public class dashboard extends javax.swing.JFrame {
     private void btnMenuTransaksiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuTransaksiActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnMenuTransaksiActionPerformed
+
+    private void btnMenuGuruActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuGuruActionPerformed
+        guru formGuru = new guru();
+        formGuru.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnMenuGuruActionPerformed
 
     /**
      * @param args the command line arguments
