@@ -39,6 +39,11 @@ public class dashboard extends javax.swing.JFrame {
 
         btnMenuSiswa.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuSiswa.setText("Data Siswa");
+        btnMenuSiswa.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuSiswaActionPerformed(evt);
+            }
+        });
 
         btnMenuGuru.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuGuru.setText("Data Guru");
@@ -123,6 +128,12 @@ public class dashboard extends javax.swing.JFrame {
         formGuru.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuGuruActionPerformed
+
+    private void btnMenuSiswaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuSiswaActionPerformed
+        FormDataSiswa formSiswa = new FormDataSiswa();
+        formSiswa.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnMenuSiswaActionPerformed
 
     /**
      * @param args the command line arguments
