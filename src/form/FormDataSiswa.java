@@ -640,7 +640,9 @@ private Connection conn = new KoneksiDB().koneksi();
         }    }//GEN-LAST:event_bhapusActionPerformed
 
     private void bkeluarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bkeluarActionPerformed
-        dispose();
+        dashboard Dashboard = new dashboard();
+        Dashboard.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_bkeluarActionPerformed
 
     private void txtcariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtcariActionPerformed
