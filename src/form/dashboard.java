@@ -70,6 +70,11 @@ public class dashboard extends javax.swing.JFrame {
 
         btnMenuKelas.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuKelas.setText("Data Kelas");
+        btnMenuKelas.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuKelasActionPerformed(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Noto Sans", 1, 24)); // NOI18N
         jLabel1.setText("SMA IT Daarussolihin");
@@ -153,6 +158,12 @@ public class dashboard extends javax.swing.JFrame {
     private void btnKeluarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKeluarActionPerformed
         dispose();
     }//GEN-LAST:event_btnKeluarActionPerformed
+
+    private void btnMenuKelasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuKelasActionPerformed
+        kelas formKelas = new kelas();
+        formKelas.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnMenuKelasActionPerformed
 
     /**
      * @param args the command line arguments
