@@ -4,13 +4,35 @@
  */
 package form;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import java.awt.Color;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import koneksi.KoneksiDB;
+import javax.swing.ButtonGroup;
+import javax.swing.JSpinner;
+import java.util.Date;
 
 /**
  *
@@ -33,13 +55,14 @@ public class guru extends javax.swing.JFrame {
 
     protected void aktif() {
         txtid.requestFocus();
+        tglLahir.setEditor(new JSpinner.DateEditor(tglLahir, "yyyy/MM/dd"));
     }
 
     protected void kosong() {
         txtid.setText("");
         txt_nip.setText("");
         txt_nama.setText("");
-        txt_tglLahir.setText("");
+        tglLahir.setValue(new java.util.Date());
         txt_telp.setText("");
         txt_mapel.setText("");
         txt_waliKelas.setText("");
@@ -60,7 +83,7 @@ public class guru extends javax.swing.JFrame {
                     hasil.getString(1),
                     hasil.getString(2),
                     hasil.getString(3),
-                    hasil.getString(4),
+                    hasil.getDate(4),
                     hasil.getString(5),
                     hasil.getString(6),
                     hasil.getString(7),
@@ -82,6 +105,7 @@ public class guru extends javax.swing.JFrame {
     private void initComponents() {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
+        jCheckBoxMenuItem1 = new javax.swing.JCheckBoxMenuItem();
         jLabel2 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -91,7 +115,6 @@ public class guru extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         txt_nip = new javax.swing.JTextField();
         txt_nama = new javax.swing.JTextField();
-        txt_tglLahir = new javax.swing.JTextField();
         rlaki = new javax.swing.JRadioButton();
         rperempuan = new javax.swing.JRadioButton();
         jLabel7 = new javax.swing.JLabel();
@@ -107,10 +130,14 @@ public class guru extends javax.swing.JFrame {
         btnKeluar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblGuru = new javax.swing.JTable();
-        jLabel10 = new javax.swing.JLabel();
         txt_cariData = new javax.swing.JTextField();
         btnCari = new javax.swing.JButton();
-        btnPrint = new javax.swing.JButton();
+        btnCSV = new javax.swing.JButton();
+        btnPDF = new javax.swing.JButton();
+        tglLahir = new javax.swing.JSpinner();
+
+        jCheckBoxMenuItem1.setSelected(true);
+        jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -200,9 +227,6 @@ public class guru extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tblGuru);
 
-        jLabel10.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
-        jLabel10.setText("Cari Data");
-
         txt_cariData.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txt_cariDataKeyPressed(evt);
@@ -216,84 +240,94 @@ public class guru extends javax.swing.JFrame {
             }
         });
 
-        btnPrint.setText("Print");
-        btnPrint.addActionListener(new java.awt.event.ActionListener() {
+        btnCSV.setText("Export CSV");
+        btnCSV.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnPrintActionPerformed(evt);
+                btnCSVActionPerformed(evt);
             }
         });
+
+        btnPDF.setText("Print PDF");
+        btnPDF.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPDFActionPerformed(evt);
+            }
+        });
+
+        tglLahir.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, new java.util.Date(), java.util.Calendar.DAY_OF_MONTH));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(btnPrint)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(380, 380, 380)
-                            .addComponent(jLabel2))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
-                            .addComponent(jLabel1)
-                            .addGap(59, 59, 59)
-                            .addComponent(txtid, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(114, 114, 114)
-                            .addComponent(jLabel6)
-                            .addGap(55, 55, 55)
-                            .addComponent(rlaki, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(6, 6, 6)
-                            .addComponent(rperempuan, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
-                            .addComponent(jLabel3)
-                            .addGap(50, 50, 50)
-                            .addComponent(txt_nip, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(114, 114, 114)
-                            .addComponent(jLabel7)
-                            .addGap(39, 39, 39)
-                            .addComponent(txt_telp, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(380, 380, 380)
+                        .addComponent(jLabel2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addComponent(jLabel1)
+                        .addGap(59, 59, 59)
+                        .addComponent(txtid, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(114, 114, 114)
+                        .addComponent(jLabel6)
+                        .addGap(55, 55, 55)
+                        .addComponent(rlaki, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(6, 6, 6)
+                        .addComponent(rperempuan, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addComponent(jLabel3)
+                        .addGap(50, 50, 50)
+                        .addComponent(txt_nip, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(114, 114, 114)
+                        .addComponent(jLabel7)
+                        .addGap(39, 39, 39)
+                        .addComponent(txt_telp, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(120, 120, 120)
+                        .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(btnUbah, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(btnHapus, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(46, 46, 46)
+                        .addComponent(btnBatal, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(45, 45, 45)
+                        .addComponent(btnKeluar, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(40, 40, 40)
+                        .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(26, 26, 26)
+                        .addComponent(btnCSV)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnPDF))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(17, 17, 17)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 876, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4)
-                            .addGap(34, 34, 34)
-                            .addComponent(txt_nama, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(114, 114, 114)
-                            .addComponent(jLabel8)
-                            .addGap(57, 57, 57)
-                            .addComponent(txt_mapel, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
-                            .addComponent(jLabel5)
-                            .addGap(50, 50, 50)
-                            .addComponent(txt_tglLahir, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(114, 114, 114)
-                            .addComponent(jLabel9)
-                            .addGap(53, 53, 53)
-                            .addComponent(txt_waliKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(120, 120, 120)
-                            .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(43, 43, 43)
-                            .addComponent(btnUbah, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(43, 43, 43)
-                            .addComponent(btnHapus, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(46, 46, 46)
-                            .addComponent(btnBatal, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(45, 45, 45)
-                            .addComponent(btnKeluar, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(37, 37, 37)
-                            .addComponent(jLabel10)
-                            .addGap(12, 12, 12)
-                            .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(40, 40, 40)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 819, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(50, Short.MAX_VALUE))
+                            .addComponent(jLabel5))
+                        .addGap(34, 34, 34)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txt_nama, javax.swing.GroupLayout.DEFAULT_SIZE, 254, Short.MAX_VALUE)
+                            .addComponent(tglLahir))
+                        .addGap(114, 114, 114)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addGap(57, 57, 57)
+                                .addComponent(txt_mapel, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jLabel9)
+                                .addGap(53, 53, 53)
+                                .addComponent(txt_waliKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addContainerGap(16, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -335,14 +369,15 @@ public class guru extends javax.swing.JFrame {
                             .addComponent(jLabel8))))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txt_tglLahir, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txt_waliKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(7, 7, 7)
+                        .addGap(4, 4, 4)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel9))))
-                .addGap(27, 27, 27)
+                            .addComponent(jLabel9)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel5)
+                                .addComponent(tglLahir, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGap(31, 31, 31)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnUbah, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -350,17 +385,14 @@ public class guru extends javax.swing.JFrame {
                     .addComponent(btnBatal, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnKeluar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(7, 7, 7)
-                        .addComponent(jLabel10))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(28, 28, 28)
+                    .addComponent(btnCSV, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnPDF, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
-                .addComponent(btnPrint)
-                .addContainerGap())
+                .addGap(25, 25, 25))
         );
 
         pack();
@@ -377,24 +409,9 @@ public class guru extends javax.swing.JFrame {
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            // 1. Get the date string from the text field
-            String tglLahirString = txt_tglLahir.getText();
+            java.util.Date utilDate = (java.util.Date) tglLahir.getValue();
 
-            // 2. Define the expected date format (adjust this to match your input format)
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Example format: YYYY-MM-DD
-
-            // 3. Parse the string into a java.util.Date
-            java.util.Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(tglLahirString);
-            } catch (ParseException e) {
-                JOptionPane.showMessageDialog(null, "Invalid date format. Please use YYYY-MM-DD.");
-                // Handle the parsing error, perhaps return or throw an exception
-                return; // Exit the method if date format is incorrect
-            }
-
-            // 4. Convert java.util.Date to java.sql.Date
-            Date sqlDate = new Date(parsedDate.getTime());
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
             stat.setString(1, txt_nip.getText());
             stat.setString(2, txt_nama.getText());
@@ -424,23 +441,10 @@ public class guru extends javax.swing.JFrame {
         try {
             String sql = "update guru set nip=?,nama=?,tgl_lahir=?,jk=?,telp=?,mapel=?,wali_kelas=? where id='" + txtid.getText() + "'";
             PreparedStatement stat = conn.prepareStatement(sql);
-            String tglLahirString = txt_tglLahir.getText();
 
-            // 2. Define the expected date format (adjust this to match your input format)
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Example format: YYYY-MM-DD
+            java.util.Date utilDate = (java.util.Date) tglLahir.getValue();
 
-            // 3. Parse the string into a java.util.Date
-            java.util.Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(tglLahirString);
-            } catch (ParseException e) {
-                JOptionPane.showMessageDialog(null, "Invalid date format. Please use YYYY-MM-DD.");
-                // Handle the parsing error, perhaps return or throw an exception
-                return; // Exit the method if date format is incorrect
-            }
-
-            // 4. Convert java.util.Date to java.sql.Date
-            Date sqlDate = new Date(parsedDate.getTime());
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
             
             stat.setString(1, txt_nip.getText());
             stat.setString(2, txt_nama.getText());
@@ -503,7 +507,7 @@ public class guru extends javax.swing.JFrame {
         String a = tabmode.getValueAt(bar, 0).toString();
         String b = tabmode.getValueAt(bar, 1).toString();
         String c = tabmode.getValueAt(bar, 2).toString();
-        String d = tabmode.getValueAt(bar, 3).toString();
+        Object dObj = tabmode.getValueAt(bar, 3);
         String e = tabmode.getValueAt(bar, 4).toString();
         String f = tabmode.getValueAt(bar, 5).toString();
         String g = tabmode.getValueAt(bar, 6).toString();
@@ -512,7 +516,17 @@ public class guru extends javax.swing.JFrame {
         txtid.setText(a);
         txt_nip.setText(b);
         txt_nama.setText(c);
-        txt_tglLahir.setText(d);
+        if (dObj instanceof java.sql.Date) {
+            // Convert java.sql.Date back to java.util.Date for the spinner
+            java.sql.Date sqlDate = (java.sql.Date) dObj;
+            tglLahir.setValue(new java.util.Date(sqlDate.getTime()));
+        } else if (dObj instanceof java.util.Date) {
+            // If it's already a java.util.Date (less likely from DB but possible)
+            tglLahir.setValue((java.util.Date) dObj);
+        } else {
+            // If it's null or some other type, reset spinner to current date
+            tglLahir.setValue(new java.util.Date());
+        }
         if ("Laki-Laki".equals(e)) {
             rlaki.setSelected(true);
         } else {
@@ -523,19 +537,165 @@ public class guru extends javax.swing.JFrame {
         txt_waliKelas.setText(h);
     }//GEN-LAST:event_tblGuruMouseClicked
 
-    private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
-        try {
-            boolean complete = tblGuru.print();
-                if (complete) {
-                    JOptionPane.showMessageDialog(null, "Pencetakan selesai");
-                } else {
-                    JOptionPane.showMessageDialog(null, "Pencetakan dibatalkan");
+    private String escapeCsv(String data) {
+        if (data == null) {
+            return "\"\""; // Represent null as an empty quoted string
+        }
+        // Escape double quotes by doubling them: " -> ""
+        String escapedData = data.replace("\"", "\"\"");
+        // If data contains comma, double quote, or newline, enclose in double quotes
+        if (data.contains(",") || data.contains("\"") || data.contains("\n") || data.contains("\r")) {
+            return "\"" + escapedData + "\"";
+        }
+        // Otherwise, return the (potentially quote-escaped) data as is
+        return escapedData;
+    }
+    
+    private void btnCSVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCSVActionPerformed
+        String defaultFolder = System.getProperty("user.home");
+        String filePath = defaultFolder + File.separator + "data_guru_export.csv";
+
+        String cariitem = txt_cariData.getText();
+        
+        String[] headers = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(String.join(",", headers));
+            writer.newLine();
+
+            String sql = "Select * FROM guru where id like '%" + cariitem + "%' or nama like '%" + cariitem + "%' order by id asc";
+
+            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
+                while (hasil.next()) {
+                    List<String> rowData = new ArrayList<>();
+
+                    rowData.add(escapeCsv(hasil.getString(1))); // ID
+                    rowData.add(escapeCsv(hasil.getString(2))); // NIP
+                    rowData.add(escapeCsv(hasil.getString(3))); // Nama
+                    java.sql.Date tglLahir = hasil.getDate(4);
+                    rowData.add(escapeCsv(tglLahir == null ? "" : tglLahir.toString()));
+                    rowData.add(escapeCsv(hasil.getString(5))); // JK
+                    rowData.add(escapeCsv(hasil.getString(6))); // No. Telp
+                    rowData.add(escapeCsv(hasil.getString(7))); // Mapel
+                    rowData.add(escapeCsv(hasil.getString(8))); // Wali Kelas
+
+                    // Join the escaped data with commas and write the row
+                    writer.write(String.join(",", rowData));
+                    writer.newLine();
                 }
-            } catch (Exception e) {
+
+                JOptionPane.showMessageDialog(this,
+                        "Data berhasil diekspor ke:\n" + filePath,
+                        "Ekspor Berhasil",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal mengambil data dari database: " + e.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace(); // Good for debugging
+
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Gagal menulis file CSV: " + e.getMessage(),
+                    "File Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+    }//GEN-LAST:event_btnCSVActionPerformed
+
+    private void btnPDFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPDFActionPerformed
+        String defaultFolder = System.getProperty("user.home");
+        String filePath = defaultFolder + File.separator + "data_guru_lengkap.pdf";
+
+        Document document = new Document(PageSize.A4.rotate());
+
+        try {
+            PdfWriter.getInstance(document, new FileOutputStream(filePath));
+
+            document.open();
+
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Paragraph title = new Paragraph("Data Lengkap Guru", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20);
+            document.add(title);
+
+            PdfPTable pdfTable = new PdfPTable(8);
+            pdfTable.setWidthPercentage(100);
+
+            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
+            PdfPCell cell = new PdfPCell();
+            cell.setBackgroundColor(Color.GRAY);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cell.setPadding(5);
+
+            // Add table headers
+            String[] headers = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
+            for (String header : headers) {
+                cell.setPhrase(new Phrase(header, headerFont));
+                pdfTable.addCell(cell);
+            }
+            pdfTable.setHeaderRows(1); 
+
+            String sql = "SELECT * FROM guru ORDER BY id ASC";
+
+            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
+                // Define data cell font
+                Font dataFont = new Font(Font.HELVETICA, 9);
+                PdfPCell dataCell = new PdfPCell();
+                dataCell.setPadding(4);
+                dataCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+                while (hasil.next()) {
+                    dataCell.setPhrase(new Phrase(hasil.getString(1) == null ? "" : hasil.getString(1), dataFont)); // ID
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(2) == null ? "" : hasil.getString(2), dataFont)); // NIP
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(3) == null ? "" : hasil.getString(3), dataFont)); // Nama
+                    pdfTable.addCell(dataCell);
+                    java.sql.Date tglLahir = hasil.getDate(4);
+                    dataCell.setPhrase(new Phrase(tglLahir == null ? "" : tglLahir.toString(), dataFont)); // Tgl Lahir
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(5) == null ? "" : hasil.getString(5), dataFont)); // JK
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(6) == null ? "" : hasil.getString(6), dataFont)); // No. Telp
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(7) == null ? "" : hasil.getString(7), dataFont)); // Mapel
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(8) == null ? "" : hasil.getString(8), dataFont)); // Wakel
+                    pdfTable.addCell(dataCell);
+                }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal mengambil data dari database: " + e.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
 
-    }//GEN-LAST:event_btnPrintActionPerformed
+            document.add(pdfTable);
+
+            JOptionPane.showMessageDialog(this,
+                    "Data lengkap berhasil diekspor ke PDF:\n" + filePath,
+                    "Ekspor PDF Berhasil",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (DocumentException | FileNotFoundException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Gagal membuat file PDF: " + e.getMessage(),
+                    "PDF Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } finally {
+            if (document != null && document.isOpen()) {
+                document.close();
+            }
+        }
+    }//GEN-LAST:event_btnPDFActionPerformed
 
     /**
      * @param args the command line arguments
@@ -574,15 +734,16 @@ public class guru extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBatal;
+    private javax.swing.JButton btnCSV;
     private javax.swing.JButton btnCari;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnKeluar;
-    private javax.swing.JButton btnPrint;
+    private javax.swing.JButton btnPDF;
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnUbah;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -595,12 +756,12 @@ public class guru extends javax.swing.JFrame {
     private javax.swing.JRadioButton rlaki;
     private javax.swing.JRadioButton rperempuan;
     private javax.swing.JTable tblGuru;
+    private javax.swing.JSpinner tglLahir;
     private javax.swing.JTextField txt_cariData;
     private javax.swing.JTextField txt_mapel;
     private javax.swing.JTextField txt_nama;
     private javax.swing.JTextField txt_nip;
     private javax.swing.JTextField txt_telp;
-    private javax.swing.JTextField txt_tglLahir;
     private javax.swing.JTextField txt_waliKelas;
     private javax.swing.JTextField txtid;
     // End of variables declaration//GEN-END:variables

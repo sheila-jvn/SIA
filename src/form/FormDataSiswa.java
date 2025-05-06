@@ -1,75 +1,102 @@
 package form;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import java.awt.Color;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import koneksi.KoneksiDB;
 import javax.swing.ButtonGroup;
+import javax.swing.JSpinner;
+import java.util.Date;
 
 public class FormDataSiswa extends javax.swing.JFrame {
-private Connection conn = new KoneksiDB().koneksi();
+
+    private Connection conn = new KoneksiDB().koneksi();
     private DefaultTableModel tabmode;
     private ButtonGroup buttonGroup1;
+
     /**
      * Creates new form FormDataSiswa
      */
     public FormDataSiswa() {
         initComponents();
-            kosong();
-            aktif();
-            datatable();
+        kosong();
+        aktif();
+        datatable();
     }
-    protected void aktif(){
-            txtnama.requestFocus();
-        }
-        
-        protected void kosong(){
-            txtid.setText("");
-            txtnama.setText("");
-            txtnisn.setText("");
-            txtnik.setText("");
-            txtkk.setText("");
-            txtttl.setText("");
-            txtnamaayah.setText("");
-            txtnikayah.setText("");
-            txtnamaibu.setText("");
-            txtnikibu.setText("");
-            txtalamat.setText("");
-            buttonGroup2.clearSelection();
-        }
-            
-     protected void datatable(){
-            Object[] Baris ={"ID", "Nama Siswa","NISN","NIK","KK","Tanggal Lahir","Jenis Kelamin","Nama Ayah","NIK Ayah","Nama Ibu","NIK Ibu","Alamat"};
-            tabmode = new DefaultTableModel(null, Baris);
-            String cariitem = txtcari.getText();
-            
-            try {
-                String sql = "Select * FROM data_siswa where id like '%"+cariitem+"%' or Nama like '%"+cariitem+"%' order by id asc";
-                Statement stat = conn.createStatement();
-                ResultSet hasil = stat.executeQuery(sql);
-                while (hasil.next()){
-                    tabmode.addRow(new Object[]{
+
+    protected void aktif() {
+        txtnama.requestFocus();
+        tgl_lahir.setEditor(new JSpinner.DateEditor(tgl_lahir, "yyyy/MM/dd"));
+    }
+
+    protected void kosong() {
+        txtid.setText("");
+        txtnama.setText("");
+        txtnisn.setText("");
+        txtnik.setText("");
+        txtkk.setText("");
+        txtnamaayah.setText("");
+        txtnikayah.setText("");
+        txtnamaibu.setText("");
+        txtnikibu.setText("");
+        txtalamat.setText("");
+        buttonGroup2.clearSelection();
+        tgl_lahir.setValue(new Date());
+    }
+
+    protected void datatable() {
+        Object[] Baris = {"ID", "Nama Siswa", "NISN", "NIK", "KK", "Tanggal Lahir", "Jenis Kelamin", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
+        tabmode = new DefaultTableModel(null, Baris);
+        String cariitem = txtcari.getText();
+
+        try {
+            String sql = "Select * FROM data_siswa where id like '%" + cariitem + "%' or Nama like '%" + cariitem + "%' order by id asc";
+            Statement stat = conn.createStatement();
+            ResultSet hasil = stat.executeQuery(sql);
+            while (hasil.next()) {
+                tabmode.addRow(new Object[]{
                     hasil.getString(1),
                     hasil.getString(2),
                     hasil.getString(3),
                     hasil.getString(4),
                     hasil.getString(5),
-                    hasil.getString(6),
+                    hasil.getDate(6),
                     hasil.getString(7),
                     hasil.getString(8),
                     hasil.getString(9),
                     hasil.getString(10),
                     hasil.getString(11),
                     hasil.getString(12)
-                    });
-                }
-                tblsiswa.setModel(tabmode);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "data gagal dipanggil"+e);
+                });
             }
-        } 
+            tblsiswa.setModel(tabmode);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "data gagal dipanggil" + e);
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -81,7 +108,6 @@ private Connection conn = new KoneksiDB().koneksi();
 
         buttonGroup2 = new javax.swing.ButtonGroup();
         txtnama = new javax.swing.JTextField();
-        txtttl = new javax.swing.JTextField();
         txtnik = new javax.swing.JTextField();
         txtnisn = new javax.swing.JTextField();
         txtnamaayah = new javax.swing.JTextField();
@@ -115,18 +141,15 @@ private Connection conn = new KoneksiDB().koneksi();
         jLabel21 = new javax.swing.JLabel();
         rlaki = new javax.swing.JRadioButton();
         rperempuan = new javax.swing.JRadioButton();
+        tgl_lahir = new javax.swing.JSpinner();
+        btnExportCsv = new javax.swing.JButton();
+        btnExportPdf = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         txtnama.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 txtnamaActionPerformed(evt);
-            }
-        });
-
-        txtttl.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtttlActionPerformed(evt);
             }
         });
 
@@ -311,6 +334,22 @@ private Connection conn = new KoneksiDB().koneksi();
         buttonGroup2.add(rperempuan);
         rperempuan.setText("Perempuan");
 
+        tgl_lahir.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, new java.util.Date(), java.util.Calendar.DAY_OF_MONTH));
+
+        btnExportCsv.setText("Export CSV");
+        btnExportCsv.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExportCsvActionPerformed(evt);
+            }
+        });
+
+        btnExportPdf.setText("Print PDF");
+        btnExportPdf.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExportPdfActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -342,24 +381,6 @@ private Connection conn = new KoneksiDB().koneksi();
                         .addComponent(txtnisn, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(67, 67, 67)
-                        .addComponent(jLabel4)
-                        .addGap(119, 119, 119)
-                        .addComponent(txtnik, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(117, 117, 117)
-                        .addComponent(jLabel17)
-                        .addGap(129, 129, 129)
-                        .addComponent(txtkk, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(67, 67, 67)
-                        .addComponent(jLabel13)
-                        .addGap(53, 53, 53)
-                        .addComponent(txtttl, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(117, 117, 117)
-                        .addComponent(jLabel18)
-                        .addGap(99, 99, 99)
-                        .addComponent(txtalamat, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(67, 67, 67)
                         .addComponent(jLabel14)
                         .addGap(67, 67, 67)
                         .addComponent(txtnamaayah, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -367,14 +388,6 @@ private Connection conn = new KoneksiDB().koneksi();
                         .addComponent(jLabel19)
                         .addGap(86, 86, 86)
                         .addComponent(txtnikayah, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(28, 28, 28)
-                        .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(bcari))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1013, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(67, 67, 67)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -395,92 +408,126 @@ private Connection conn = new KoneksiDB().koneksi();
                                 .addGap(117, 117, 117)
                                 .addComponent(jLabel20)
                                 .addGap(97, 97, 97)
-                                .addComponent(txtnikibu, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addGap(15, 15, 15))
+                                .addComponent(txtnikibu, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(67, 67, 67)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel13))
+                        .addGap(53, 53, 53)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(tgl_lahir)
+                            .addComponent(txtnik, javax.swing.GroupLayout.DEFAULT_SIZE, 244, Short.MAX_VALUE))
+                        .addGap(117, 117, 117)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel17)
+                                .addGap(129, 129, 129)
+                                .addComponent(txtkk, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jLabel18)
+                                .addGap(99, 99, 99)
+                                .addComponent(txtalamat, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(29, 29, 29)
+                        .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(bcari)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnExportCsv)
+                        .addGap(18, 18, 18)
+                        .addComponent(btnExportPdf))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1013, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(14, 14, 14))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(6, 6, 6)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(17, 17, 17)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(17, 17, 17)
+                        .addGap(4, 4, 4)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtid, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(5, 5, 5)
+                        .addComponent(rlaki))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(5, 5, 5)
+                        .addComponent(rperempuan)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtnama, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtnisn, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(txtid, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addComponent(jLabel21, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(5, 5, 5)
-                                .addComponent(rlaki))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(5, 5, 5)
-                                .addComponent(rperempuan)))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtnik, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtkk, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtnama, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtnisn, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtnik, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtkk, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtttl, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtalamat, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(4, 4, 4)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                    .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(18, 18, 18)
+                        .addComponent(tgl_lahir, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(21, 21, 21)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtnikayah, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtnikayah, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtnamaayah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(18, 18, 18)
+                            .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtnamaayah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtnamaibu, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtnikibu, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(4, 4, 4)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtnamaibu, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtnikibu, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(34, 34, 34)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(bsimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(bubah, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(bhapus, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(bbatal, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(bkeluar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(107, 107, 107)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 312, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(bcari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(338, 338, 338))))
+                            .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(34, 34, 34)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(bsimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bubah, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bhapus, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(bbatal, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(bkeluar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(31, 31, 31)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(bcari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExportCsv, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExportPdf, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 21, Short.MAX_VALUE))
         );
 
         pack();
@@ -489,10 +536,6 @@ private Connection conn = new KoneksiDB().koneksi();
     private void txtnamaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtnamaActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtnamaActionPerformed
-
-    private void txtttlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtttlActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtttlActionPerformed
 
     private void txtnikActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtnikActionPerformed
         // TODO add your handling code here:
@@ -534,28 +577,13 @@ private Connection conn = new KoneksiDB().koneksi();
             jenis = "Perempuan";
         }
         String sql = "insert into data_siswa (Nama, NISN, NIK, no_kk, tgl_lahir, jk, Nama_Ayah, NIK_Ayah, Nama_Ibu, NIK_Ibu, Alamat) values (?,?,?,?,?,?,?,?,?,?,?)";
-        try{
+        try {
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            // 1. Get the date string from the text field
-            String tglLahirString = txtttl.getText();
+            java.util.Date utilDate = (java.util.Date) tgl_lahir.getValue();
 
-            // 2. Define the expected date format (adjust this to match your input format)
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy"); // Example format: YYYY-MM-DD
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
-            // 3. Parse the string into a java.util.Date
-            java.util.Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(tglLahirString);
-            } catch (ParseException e) {
-                JOptionPane.showMessageDialog(null, "Invalid date format. Please use YYYY-MM-DD.");
-                // Handle the parsing error, perhaps return or throw an exception
-                return; // Exit the method if date format is incorrect
-            }
-
-            // 4. Convert java.util.Date to java.sql.Date
-            Date sqlDate = new Date(parsedDate.getTime());
-            
             stat.setString(1, txtnama.getText());
             stat.setString(2, txtnisn.getText());
             stat.setString(3, txtnik.getText());
@@ -572,7 +600,7 @@ private Connection conn = new KoneksiDB().koneksi();
             kosong();
             txtid.requestFocus();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal disimpan"+e);
+            JOptionPane.showMessageDialog(null, "data gagal disimpan" + e);
         }
         datatable();
     }//GEN-LAST:event_bsimpanActionPerformed
@@ -584,23 +612,14 @@ private Connection conn = new KoneksiDB().koneksi();
         } else if (rperempuan.isSelected()) {
             jenis = "Perempuan";
         }
-        try{
+        try {
             String sql = "update data_siswa set Nama=?,NISN=?,NIK=?,no_kk=?,tgl_lahir=?,jk=?,Nama_Ayah=?,NIK_Ayah=?,Nama_Ibu=?,NIK_Ibu=?,Alamat=? where id='" + txtid.getText() + "'";
             PreparedStatement stat = conn.prepareStatement(sql);
-            String tglLahirString = txtttl.getText();
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            java.util.Date utilDate = (java.util.Date) tgl_lahir.getValue();
 
-            java.util.Date parsedDate = null;
-            try {
-                parsedDate = dateFormat.parse(tglLahirString);
-            } catch (ParseException e) {
-                JOptionPane.showMessageDialog(null, "Invalid date format. Please use YYYY-MM-DD.");
-                return;
-            }
+            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
-            Date sqlDate = new Date(parsedDate.getTime());
-            
             stat.setString(1, txtnama.getText());
             stat.setString(2, txtnisn.getText());
             stat.setString(3, txtnik.getText());
@@ -617,24 +636,23 @@ private Connection conn = new KoneksiDB().koneksi();
             kosong();
             txtid.requestFocus();
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal diubah"+e);
+            JOptionPane.showMessageDialog(null, "data gagal diubah" + e);
         }
         datatable();
     }//GEN-LAST:event_bubahActionPerformed
 
     private void bhapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bhapusActionPerformed
-        int ok = JOptionPane.showConfirmDialog(null,"hapus","konfirmasi dialog",JOptionPane.YES_NO_OPTION);
-        if (ok==0){
-            String sql = "delete from data_siswa where id = '"+txtid.getText()+"'";
-            try{
+        int ok = JOptionPane.showConfirmDialog(null, "hapus", "konfirmasi dialog", JOptionPane.YES_NO_OPTION);
+        if (ok == 0) {
+            String sql = "delete from data_siswa where id = '" + txtid.getText() + "'";
+            try {
                 PreparedStatement stat = conn.prepareStatement(sql);
                 stat.executeUpdate();
                 JOptionPane.showMessageDialog(null, "data berhasil dihapus");
                 kosong();
                 txtid.requestFocus();
-            }
-            catch (SQLException e){
-                JOptionPane.showMessageDialog(null, "data gagal dihapus"+e);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(null, "data gagal dihapus" + e);
             }
             datatable();
         }    }//GEN-LAST:event_bhapusActionPerformed
@@ -658,7 +676,7 @@ private Connection conn = new KoneksiDB().koneksi();
     }//GEN-LAST:event_jScrollPane1MouseClicked
 
     private void txtcariKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtcariKeyPressed
-        if(evt.getKeyCode() == KeyEvent.VK_ENTER){
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             datatable();
         }
     }//GEN-LAST:event_txtcariKeyPressed
@@ -679,20 +697,30 @@ private Connection conn = new KoneksiDB().koneksi();
         String c = tabmode.getValueAt(bar, 2).toString();
         String d = tabmode.getValueAt(bar, 3).toString();
         String e = tabmode.getValueAt(bar, 4).toString();
-        String f = tabmode.getValueAt(bar, 5).toString();
+        Object fObj = tabmode.getValueAt(bar, 5);
         String g = tabmode.getValueAt(bar, 6).toString();
         String h = tabmode.getValueAt(bar, 7).toString();
         String i = tabmode.getValueAt(bar, 8).toString();
         String j = tabmode.getValueAt(bar, 9).toString();
         String k = tabmode.getValueAt(bar, 10).toString();
         String l = tabmode.getValueAt(bar, 11).toString();
-        
+
         txtid.setText(a);
         txtnama.setText(b);
         txtnisn.setText(c);
         txtnik.setText(d);
         txtkk.setText(e);
-        txtttl.setText(f);
+        if (fObj instanceof java.sql.Date) {
+            // Convert java.sql.Date back to java.util.Date for the spinner
+            java.sql.Date sqlDate = (java.sql.Date) fObj;
+            tgl_lahir.setValue(new java.util.Date(sqlDate.getTime()));
+        } else if (fObj instanceof java.util.Date) {
+            // If it's already a java.util.Date (less likely from DB but possible)
+            tgl_lahir.setValue((java.util.Date) fObj);
+        } else {
+            // If it's null or some other type, reset spinner to current date
+            tgl_lahir.setValue(new Date());
+        }
         if ("Laki-Laki".equals(g)) {
             rlaki.setSelected(true);
         } else {
@@ -704,6 +732,184 @@ private Connection conn = new KoneksiDB().koneksi();
         txtnikibu.setText(k);
         txtalamat.setText(l);
     }//GEN-LAST:event_tblsiswaMouseClicked
+
+    private String escapeCsv(String data) {
+        if (data == null) {
+            return "\"\""; // Represent null as an empty quoted string
+        }
+        // Escape double quotes by doubling them: " -> ""
+        String escapedData = data.replace("\"", "\"\"");
+        // If data contains comma, double quote, or newline, enclose in double quotes
+        if (data.contains(",") || data.contains("\"") || data.contains("\n") || data.contains("\r")) {
+            return "\"" + escapedData + "\"";
+        }
+        // Otherwise, return the (potentially quote-escaped) data as is
+        return escapedData;
+    }
+
+    private void btnExportCsvActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportCsvActionPerformed
+
+        String defaultFolder = System.getProperty("user.home");
+        String filePath = defaultFolder + File.separator + "data_siswa_export.csv";
+
+        String cariitem = txtcari.getText(); // Get search term like in datatable()
+
+        String[] headers = {"ID", "Nama Siswa", "NISN", "NIK", "KK", "Tanggal Lahir", "Jenis Kelamin", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(String.join(",", headers));
+            writer.newLine();
+
+            String sql = "SELECT * FROM data_siswa WHERE id LIKE '%" + cariitem + "%' OR Nama LIKE '%" + cariitem + "%' ORDER BY id ASC";
+
+            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
+                while (hasil.next()) {
+                    List<String> rowData = new ArrayList<>();
+
+                    rowData.add(escapeCsv(hasil.getString(1))); // ID
+                    rowData.add(escapeCsv(hasil.getString(2))); // Nama Siswa
+                    rowData.add(escapeCsv(hasil.getString(3))); // NISN
+                    rowData.add(escapeCsv(hasil.getString(4))); // NIK
+                    rowData.add(escapeCsv(hasil.getString(5))); // KK
+
+                    java.sql.Date tglLahir = hasil.getDate(6); // Get date
+                    rowData.add(escapeCsv(tglLahir == null ? "" : tglLahir.toString())); // Tanggal Lahir (handle null)
+
+                    rowData.add(escapeCsv(hasil.getString(7))); // Jenis Kelamin
+                    rowData.add(escapeCsv(hasil.getString(8))); // Nama Ayah
+                    rowData.add(escapeCsv(hasil.getString(9))); // NIK Ayah
+                    rowData.add(escapeCsv(hasil.getString(10))); // Nama Ibu
+                    rowData.add(escapeCsv(hasil.getString(11))); // NIK Ibu
+                    rowData.add(escapeCsv(hasil.getString(12))); // Alamat
+
+                    // Join the escaped data with commas and write the row
+                    writer.write(String.join(",", rowData));
+                    writer.newLine();
+                }
+
+                JOptionPane.showMessageDialog(this, // Assuming 'this' refers to your JFrame/JPanel
+                        "Data berhasil diekspor ke:\n" + filePath,
+                        "Ekspor Berhasil",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                        "Gagal mengambil data dari database: " + e.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace(); // Good for debugging
+
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Gagal menulis file CSV: " + e.getMessage(),
+                    "File Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+    }//GEN-LAST:event_btnExportCsvActionPerformed
+
+    private void btnExportPdfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExportPdfActionPerformed
+        String defaultFolder = System.getProperty("user.home");
+        String filePath = defaultFolder + File.separator + "data_siswa_lengkap.pdf";
+
+        Document document = new Document(PageSize.A4.rotate()); // Use landscape for potentially wide table
+
+        try {
+            PdfWriter.getInstance(document, new FileOutputStream(filePath));
+
+            document.open();
+
+            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
+            Paragraph title = new Paragraph("Data Lengkap Siswa", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20); // Add some space after the title
+            document.add(title);
+
+            PdfPTable pdfTable = new PdfPTable(12);
+            pdfTable.setWidthPercentage(100); // Make table width 100% of page width
+
+            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
+            PdfPCell cell = new PdfPCell();
+            cell.setBackgroundColor(Color.GRAY);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cell.setPadding(5);
+
+            // Add table headers
+            String[] headers = {"ID", "Nama Siswa", "NISN", "NIK", "KK", "Tgl Lahir", "JK", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
+            for (String header : headers) {
+                cell.setPhrase(new Phrase(header, headerFont));
+                pdfTable.addCell(cell);
+            }
+            pdfTable.setHeaderRows(1); // Treat the first row as a header for repeating on new pages
+
+            String sql = "SELECT * FROM data_siswa ORDER BY id ASC"; // Get ALL data
+
+            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
+                // Define data cell font
+                Font dataFont = new Font(Font.HELVETICA, 9);
+                PdfPCell dataCell = new PdfPCell();
+                dataCell.setPadding(4);
+                dataCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+
+                while (hasil.next()) {
+                    dataCell.setPhrase(new Phrase(hasil.getString(1) == null ? "" : hasil.getString(1), dataFont)); // ID
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(2) == null ? "" : hasil.getString(2), dataFont)); // Nama Siswa
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(3) == null ? "" : hasil.getString(3), dataFont)); // NISN
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(4) == null ? "" : hasil.getString(4), dataFont)); // NIK
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(5) == null ? "" : hasil.getString(5), dataFont)); // KK
+                    pdfTable.addCell(dataCell);
+                    java.sql.Date tglLahir = hasil.getDate(6);
+                    dataCell.setPhrase(new Phrase(tglLahir == null ? "" : tglLahir.toString(), dataFont)); // Tgl Lahir
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(7) == null ? "" : hasil.getString(7), dataFont)); // JK
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(8) == null ? "" : hasil.getString(8), dataFont)); // Nama Ayah
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(9) == null ? "" : hasil.getString(9), dataFont)); // NIK Ayah
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(10) == null ? "" : hasil.getString(10), dataFont)); // Nama Ibu
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(11) == null ? "" : hasil.getString(11), dataFont)); // NIK Ibu
+                    pdfTable.addCell(dataCell);
+                    dataCell.setPhrase(new Phrase(hasil.getString(12) == null ? "" : hasil.getString(12), dataFont)); // Alamat
+                    pdfTable.addCell(dataCell);
+                }
+            } catch (SQLException e) { // Catch Database errors
+                JOptionPane.showMessageDialog(this,
+                        "Gagal mengambil data dari database: " + e.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+
+            document.add(pdfTable);
+
+            JOptionPane.showMessageDialog(this, // Assuming 'this' is your component
+                    "Data lengkap berhasil diekspor ke PDF:\n" + filePath,
+                    "Ekspor PDF Berhasil",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (DocumentException | FileNotFoundException e) { // Catch PDF specific errors
+            JOptionPane.showMessageDialog(this,
+                    "Gagal membuat file PDF: " + e.getMessage(),
+                    "PDF Error",
+                    JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } finally {
+            // ALWAYS close the document in a finally block
+            // This is crucial to ensure the PDF file is finalized and saved correctly.
+            if (document != null && document.isOpen()) {
+                document.close();
+            }
+        }
+    }//GEN-LAST:event_btnExportPdfActionPerformed
 
     /**
      * @param args the command line arguments
@@ -746,6 +952,8 @@ private Connection conn = new KoneksiDB().koneksi();
     private javax.swing.JButton bhapus;
     private javax.swing.JButton bkeluar;
     private javax.swing.JButton bsimpan;
+    private javax.swing.JButton btnExportCsv;
+    private javax.swing.JButton btnExportPdf;
     private javax.swing.JButton bubah;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JLabel jLabel1;
@@ -765,6 +973,7 @@ private Connection conn = new KoneksiDB().koneksi();
     private javax.swing.JRadioButton rlaki;
     private javax.swing.JRadioButton rperempuan;
     private javax.swing.JTable tblsiswa;
+    private javax.swing.JSpinner tgl_lahir;
     private javax.swing.JTextField txtalamat;
     private javax.swing.JTextField txtcari;
     private javax.swing.JTextField txtid;
@@ -776,6 +985,5 @@ private Connection conn = new KoneksiDB().koneksi();
     private javax.swing.JTextField txtnikayah;
     private javax.swing.JTextField txtnikibu;
     private javax.swing.JTextField txtnisn;
-    private javax.swing.JTextField txtttl;
     // End of variables declaration//GEN-END:variables
 }
