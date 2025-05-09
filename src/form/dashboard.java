@@ -56,6 +56,11 @@ public class dashboard extends javax.swing.JFrame {
 
         btnMenuAbsensi.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuAbsensi.setText("Absensi \nSiswa");
+        btnMenuAbsensi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuAbsensiActionPerformed(evt);
+            }
+        });
 
         btnMenuTransaksi.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuTransaksi.setText("Transaksi \nAkademik");
@@ -67,6 +72,11 @@ public class dashboard extends javax.swing.JFrame {
 
         btnMenuNilai.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuNilai.setText("Data Nilai");
+        btnMenuNilai.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuNilaiActionPerformed(evt);
+            }
+        });
 
         btnMenuKelas.setFont(new java.awt.Font("Noto Sans", 0, 12)); // NOI18N
         btnMenuKelas.setText("Data Kelas");
@@ -164,6 +174,18 @@ public class dashboard extends javax.swing.JFrame {
         formKelas.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuKelasActionPerformed
+
+    private void btnMenuAbsensiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuAbsensiActionPerformed
+        data_absensi Absen = new data_absensi();
+        Absen.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnMenuAbsensiActionPerformed
+
+    private void btnMenuNilaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuNilaiActionPerformed
+        DataNilai Nilai = new DataNilai();
+        Nilai.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnMenuNilaiActionPerformed
 
     /**
      * @param args the command line arguments
