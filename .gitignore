@@ -66,3 +66,4 @@ release/
 *~
 *.swp
 *.swo
+.aider*
