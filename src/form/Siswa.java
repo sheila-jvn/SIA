@@ -6,7 +6,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
 import koneksi.KoneksiDB;
 import javax.swing.ButtonGroup;
-import javax.swing.JSpinner;
 import java.util.Date;
 
 public class Siswa extends javax.swing.JFrame {
@@ -153,12 +152,6 @@ public class Siswa extends javax.swing.JFrame {
         btnExit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnExitActionPerformed(evt);
-            }
-        });
-
-        jScrollPane1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jScrollPane1MouseClicked(evt);
             }
         });
 
@@ -518,10 +511,6 @@ public class Siswa extends javax.swing.JFrame {
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         loadTable();
     }//GEN-LAST:event_btnSearchActionPerformed
-
-    private void jScrollPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPane1MouseClicked
-
-    }//GEN-LAST:event_jScrollPane1MouseClicked
 
     private void txtSearchKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
