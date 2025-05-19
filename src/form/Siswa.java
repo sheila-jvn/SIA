@@ -3,28 +3,39 @@ package form;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Types;
 import java.awt.event.KeyEvent;
-import koneksi.KoneksiDB;
-import javax.swing.ButtonGroup;
+import database.Database; // Changed import
 import java.util.Date;
 
 public class Siswa extends javax.swing.JFrame {
 
-    private Connection conn = new KoneksiDB().koneksi();
+    private Connection conn; // Modified: Initialize in constructor
     private DefaultTableModel tabmode;
-    private ButtonGroup buttonGroup1;
+    private String selectedSiswaId;
+    // private ButtonGroup buttonGroup1; // buttonGroup2 is used by NetBeans designer
 
     /**
      * Creates new form FormDataSiswa
      */
     public Siswa() {
         initComponents();
-        reset();
-        loadTable();
+        lblSelectedSiswa.setText("-"); // Initialize label
+        selectedSiswaId = null;      // Initialize ID
+        try {
+            conn = Database.getConnection(); // Added: Get connection from Database class
+            reset();
+            loadTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            // Optionally, disable UI components or close the form
+        }
     }
 
-    protected void reset() {
-        txtid.setText("");
+    private void reset() {
+        // txtid.setText(""); // No txtid field
         txtNama.setText("");
         txtNisn.setText("");
         txtNis.setText("");
@@ -34,39 +45,56 @@ public class Siswa extends javax.swing.JFrame {
         txtNamaIbu.setText("");
         txtNikIbu.setText("");
         txtAlamat.setText("");
-        buttonGroup2.clearSelection();
+        buttonGroup2.clearSelection(); // Assuming rlaki and rperempuan are in buttonGroup2
         spnTanggalLahir.setValue(new Date());
+        lblSelectedSiswa.setText("-"); // Reset selected siswa label
+        selectedSiswaId = null;      // Clear selected siswa ID
     }
 
-    protected void loadTable() {
-        Object[] Baris = {"ID", "Nama Siswa", "NISN", "NIK", "KK", "Tanggal Lahir", "Jenis Kelamin", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
+    private void loadTable() {
+        Object[] Baris = {"ID", "Nama Siswa", "NISN", "NIS", "KK", "Tanggal Lahir", "Jenis Kelamin", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
         tabmode = new DefaultTableModel(null, Baris);
         String cariitem = txtSearch.getText();
 
         try {
-            String sql = "Select * FROM data_siswa where id like '%" + cariitem + "%' or Nama like '%" + cariitem + "%' order by id asc";
-            Statement stat = conn.createStatement();
-            ResultSet hasil = stat.executeQuery(sql);
+            String sql = "SELECT id, nama, nisn, nis, no_kk, tanggal_lahir, jenis_kelamin, nama_ayah, nik_ayah, nama_ibu, nik_ibu, alamat FROM siswa WHERE id LIKE ? OR nama LIKE ? ORDER BY id ASC";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            String searchTerm = "%" + cariitem + "%";
+            stat.setString(1, searchTerm);
+            stat.setString(2, searchTerm);
+            ResultSet hasil = stat.executeQuery();
+
             while (hasil.next()) {
+                Boolean jkBool = hasil.getObject("jenis_kelamin") != null ? hasil.getBoolean("jenis_kelamin") : null;
+                String jenisKelaminStr = "";
+                if (jkBool != null) {
+                    jenisKelaminStr = jkBool ? "Laki-laki" : "Perempuan";
+                }
+
                 tabmode.addRow(new Object[]{
-                    hasil.getString(1),
-                    hasil.getString(2),
-                    hasil.getString(3),
-                    hasil.getString(4),
-                    hasil.getString(5),
-                    hasil.getDate(6),
-                    hasil.getString(7),
-                    hasil.getString(8),
-                    hasil.getString(9),
-                    hasil.getString(10),
-                    hasil.getString(11),
-                    hasil.getString(12)
+                    hasil.getString("id"),
+                    hasil.getString("nama"),
+                    hasil.getString("nisn"),
+                    hasil.getString("nis"), // Changed from NIK
+                    hasil.getString("no_kk"),
+                    hasil.getDate("tanggal_lahir"),
+                    jenisKelaminStr,
+                    hasil.getString("nama_ayah"),
+                    hasil.getString("nik_ayah"),
+                    hasil.getString("nama_ibu"),
+                    hasil.getString("nik_ibu"),
+                    hasil.getString("alamat")
                 });
             }
             tblSiswa.setModel(tabmode);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "data gagal dipanggil" + e);
+        } catch (SQLException e) { // Catch SQLException specifically
+            JOptionPane.showMessageDialog(this, "Data siswa gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void resetUI() {
+        loadTable();
+        reset();
     }
 
     /**
@@ -415,92 +443,173 @@ public class Siswa extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        String jenis = null;
-        if (rlaki.isSelected()) {
-            jenis = "Laki-Laki";
-        } else if (rperempuan.isSelected()) {
-            jenis = "Perempuan";
+        String nama = txtNama.getText();
+        String nisn = txtNisn.getText();
+        String nis = txtNis.getText();
+        String noKk = txtNoKk.getText();
+        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
+        String namaAyah = txtNamaAyah.getText();
+        String nikAyah = txtNikAyah.getText();
+        String namaIbu = txtNamaIbu.getText();
+        String nikIbu = txtNikIbu.getText();
+        String alamat = txtAlamat.getText();
+
+        if (nama.isEmpty() || nisn.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Siswa dan NISN tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        String sql = "insert into data_siswa (Nama, NISN, NIK, no_kk, tgl_lahir, jk, Nama_Ayah, NIK_Ayah, Nama_Ibu, NIK_Ibu, Alamat) values (?,?,?,?,?,?,?,?,?,?,?)";
+
+        java.sql.Date sqlTanggalLahir = null;
+        if (utilTanggalLahir != null) {
+            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
+        }
+
+        Boolean jenisKelaminDbValue = null;
+        if (rlaki.isSelected()) {
+            jenisKelaminDbValue = true; // 1 for Laki-laki
+        } else if (rperempuan.isSelected()) {
+            jenisKelaminDbValue = false; // 0 for Perempuan
+        }
+
+        String sql = "INSERT INTO siswa (nama, nisn, nis, no_kk, tanggal_lahir, jenis_kelamin, nama_ayah, nik_ayah, nama_ibu, nik_ibu, alamat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setString(1, nama);
+            stat.setString(2, nisn);
+            setStringOrNull(stat, 3, nis);
+            setStringOrNull(stat, 4, noKk);
+            setDateOrNull(stat, 5, sqlTanggalLahir);
+            setBooleanOrNull(stat, 6, jenisKelaminDbValue);
+            setStringOrNull(stat, 7, namaAyah);
+            setStringOrNull(stat, 8, nikAyah);
+            setStringOrNull(stat, 9, namaIbu);
+            setStringOrNull(stat, 10, nikIbu);
+            setStringOrNull(stat, 11, alamat);
 
-            java.util.Date utilDate = (java.util.Date) spnTanggalLahir.getValue();
-
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
-            stat.setString(1, txtNama.getText());
-            stat.setString(2, txtNisn.getText());
-            stat.setString(3, txtNis.getText());
-            stat.setString(4, txtNoKk.getText());
-            stat.setDate(5, sqlDate);
-            stat.setString(6, jenis);
-            stat.setString(7, txtNamaAyah.getText());
-            stat.setString(8, txtNikAyah.getText());
-            stat.setString(9, txtNamaIbu.getText());
-            stat.setString(10, txtNikIbu.getText());
-            stat.setString(11, txtAlamat.getText());
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil disimpan");
-            reset();
-            txtid.requestFocus();
+            int rowsInserted = stat.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Siswa berhasil ditambahkan!");
+                resetUI();
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal disimpan" + e);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data siswa: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
-        loadTable();
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        String jenis = null;
+        if (selectedSiswaId == null || selectedSiswaId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih siswa yang akan diupdate.", "Siswa Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String nama = txtNama.getText();
+        String nisn = txtNisn.getText();
+        String nis = txtNis.getText();
+        String noKk = txtNoKk.getText();
+        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
+        String namaAyah = txtNamaAyah.getText();
+        String nikAyah = txtNikAyah.getText();
+        String namaIbu = txtNamaIbu.getText();
+        String nikIbu = txtNikIbu.getText();
+        String alamat = txtAlamat.getText();
+
+        if (nama.isEmpty() || nisn.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Siswa dan NISN tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        java.sql.Date sqlTanggalLahir = null;
+        if (utilTanggalLahir != null) {
+            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
+        }
+
+        Boolean jenisKelaminDbValue = null;
         if (rlaki.isSelected()) {
-            jenis = "Laki-Laki";
+            jenisKelaminDbValue = true; // 1 for Laki-laki
         } else if (rperempuan.isSelected()) {
-            jenis = "Perempuan";
+            jenisKelaminDbValue = false; // 0 for Perempuan
         }
+
+        String sql = "UPDATE siswa SET nama=?, nisn=?, nis=?, no_kk=?, tanggal_lahir=?, jenis_kelamin=?, nama_ayah=?, nik_ayah=?, nama_ibu=?, nik_ibu=?, alamat=? WHERE id=?";
         try {
-            String sql = "update data_siswa set Nama=?,NISN=?,NIK=?,no_kk=?,tgl_lahir=?,jk=?,Nama_Ayah=?,NIK_Ayah=?,Nama_Ibu=?,NIK_Ibu=?,Alamat=? where id='" + txtid.getText() + "'";
             PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setString(1, nama);
+            stat.setString(2, nisn);
+            setStringOrNull(stat, 3, nis);
+            setStringOrNull(stat, 4, noKk);
+            setDateOrNull(stat, 5, sqlTanggalLahir);
+            setBooleanOrNull(stat, 6, jenisKelaminDbValue);
+            setStringOrNull(stat, 7, namaAyah);
+            setStringOrNull(stat, 8, nikAyah);
+            setStringOrNull(stat, 9, namaIbu);
+            setStringOrNull(stat, 10, nikIbu);
+            setStringOrNull(stat, 11, alamat);
+            stat.setString(12, selectedSiswaId);
 
-            java.util.Date utilDate = (java.util.Date) spnTanggalLahir.getValue();
-
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
-            stat.setString(1, txtNama.getText());
-            stat.setString(2, txtNisn.getText());
-            stat.setString(3, txtNis.getText());
-            stat.setString(4, txtNoKk.getText());
-            stat.setDate(5, sqlDate);
-            stat.setString(6, jenis);
-            stat.setString(7, txtNamaAyah.getText());
-            stat.setString(8, txtNikAyah.getText());
-            stat.setString(9, txtNamaIbu.getText());
-            stat.setString(10, txtNikIbu.getText());
-            stat.setString(11, txtAlamat.getText());
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil diubah");
-            reset();
-            txtid.requestFocus();
+            int rowsUpdated = stat.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data Siswa berhasil diupdate!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate data siswa. Siswa tidak ditemukan atau data tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal diubah" + e);
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data siswa: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
-        loadTable();
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        int ok = JOptionPane.showConfirmDialog(null, "hapus", "konfirmasi dialog", JOptionPane.YES_NO_OPTION);
-        if (ok == 0) {
-            String sql = "delete from data_siswa where id = '" + txtid.getText() + "'";
-            try {
-                PreparedStatement stat = conn.prepareStatement(sql);
-                stat.executeUpdate();
-                JOptionPane.showMessageDialog(null, "data berhasil dihapus");
-                reset();
-                txtid.requestFocus();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "data gagal dihapus" + e);
+        if (selectedSiswaId == null || selectedSiswaId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih siswa yang akan dihapus.", "Siswa Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus siswa: " + lblSelectedSiswa.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        String sql = "DELETE FROM siswa WHERE id = ?";
+        try {
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setString(1, selectedSiswaId);
+
+            int rowsDeleted = stat.executeUpdate();
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Siswa berhasil dihapus!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data siswa. Siswa tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
-            loadTable();
-        }    }//GEN-LAST:event_btnDeleteActionPerformed
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menghapus data siswa: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    // Helper methods for PreparedStatement
+    private void setStringOrNull(PreparedStatement ps, int index, String value) throws SQLException {
+        if (value == null || value.trim().isEmpty()) {
+            ps.setNull(index, Types.VARCHAR);
+        } else {
+            ps.setString(index, value);
+        }
+    }
+
+    private void setDateOrNull(PreparedStatement ps, int index, java.sql.Date value) throws SQLException {
+        if (value == null) {
+            ps.setNull(index, Types.DATE);
+        } else {
+            ps.setDate(index, value);
+        }
+    }
+
+    private void setBooleanOrNull(PreparedStatement ps, int index, Boolean value) throws SQLException {
+        if (value == null) {
+            ps.setNull(index, Types.BOOLEAN);
+        } else {
+            ps.setBoolean(index, value);
+        }
+    }
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         dashboard Dashboard = new dashboard();
@@ -519,67 +628,46 @@ public class Siswa extends javax.swing.JFrame {
     }//GEN-LAST:event_txtSearchKeyPressed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
-        reset();
-        loadTable();
+        resetUI();
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void tblSiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblSiswaMouseClicked
-        int bar = tblSiswa.getSelectedRow();
-        String a = tabmode.getValueAt(bar, 0).toString();
-        String b = tabmode.getValueAt(bar, 1).toString();
-        String c = tabmode.getValueAt(bar, 2).toString();
-        String d = tabmode.getValueAt(bar, 3).toString();
-        String e = tabmode.getValueAt(bar, 4).toString();
-        Object fObj = tabmode.getValueAt(bar, 5);
-        String g = tabmode.getValueAt(bar, 6).toString();
-        String h = tabmode.getValueAt(bar, 7).toString();
-        String i = tabmode.getValueAt(bar, 8).toString();
-        String j = tabmode.getValueAt(bar, 9).toString();
-        String k = tabmode.getValueAt(bar, 10).toString();
-        String l = tabmode.getValueAt(bar, 11).toString();
+        int baris = tblSiswa.getSelectedRow();
+        if (baris != -1) {
+            selectedSiswaId = tblSiswa.getValueAt(baris, 0).toString();
+            String nama = tblSiswa.getValueAt(baris, 1).toString(); // Nama is NOT NULL
+            lblSelectedSiswa.setText(nama); // Update label
 
-        txtid.setText(a);
-        txtNama.setText(b);
-        txtNisn.setText(c);
-        txtNis.setText(d);
-        txtNoKk.setText(e);
-        if (fObj instanceof java.sql.Date) {
-            // Convert java.sql.Date back to java.util.Date for the spinner
-            java.sql.Date sqlDate = (java.sql.Date) fObj;
-            spnTanggalLahir.setValue(new java.util.Date(sqlDate.getTime()));
-        } else if (fObj instanceof java.util.Date) {
-            // If it's already a java.util.Date (less likely from DB but possible)
-            spnTanggalLahir.setValue((java.util.Date) fObj);
-        } else {
-            // If it's null or some other type, reset spinner to current date
-            spnTanggalLahir.setValue(new Date());
+            txtNama.setText(nama);
+            txtNisn.setText(tblSiswa.getValueAt(baris, 2) != null ? tblSiswa.getValueAt(baris, 2).toString() : ""); // NISN is NOT NULL
+            txtNis.setText(tblSiswa.getValueAt(baris, 3) != null ? tblSiswa.getValueAt(baris, 3).toString() : "");
+            txtNoKk.setText(tblSiswa.getValueAt(baris, 4) != null ? tblSiswa.getValueAt(baris, 4).toString() : "");
+
+            Object tanggalLahirObj = tblSiswa.getValueAt(baris, 5);
+            if (tanggalLahirObj instanceof java.util.Date) { // Covers java.sql.Date
+                spnTanggalLahir.setValue(new java.util.Date(((java.util.Date) tanggalLahirObj).getTime()));
+            } else {
+                spnTanggalLahir.setValue(new Date()); // Default if null or other type
+            }
+
+            String jenisKelaminStr = tblSiswa.getValueAt(baris, 6) != null ? tblSiswa.getValueAt(baris, 6).toString() : "";
+            if ("Laki-laki".equalsIgnoreCase(jenisKelaminStr)) {
+                rlaki.setSelected(true);
+            } else if ("Perempuan".equalsIgnoreCase(jenisKelaminStr)) {
+                rperempuan.setSelected(true);
+            } else {
+                buttonGroup2.clearSelection(); // Clear if no match or null
+            }
+
+            txtNamaAyah.setText(tblSiswa.getValueAt(baris, 7) != null ? tblSiswa.getValueAt(baris, 7).toString() : "");
+            txtNikAyah.setText(tblSiswa.getValueAt(baris, 8) != null ? tblSiswa.getValueAt(baris, 8).toString() : "");
+            txtNamaIbu.setText(tblSiswa.getValueAt(baris, 9) != null ? tblSiswa.getValueAt(baris, 9).toString() : "");
+            txtNikIbu.setText(tblSiswa.getValueAt(baris, 10) != null ? tblSiswa.getValueAt(baris, 10).toString() : "");
+            txtAlamat.setText(tblSiswa.getValueAt(baris, 11) != null ? tblSiswa.getValueAt(baris, 11).toString() : "");
         }
-        if ("Laki-Laki".equals(g)) {
-            rlaki.setSelected(true);
-        } else {
-            rperempuan.setSelected(true);
-        }
-        txtNamaAyah.setText(h);
-        txtNikAyah.setText(i);
-        txtNamaIbu.setText(j);
-        txtNikIbu.setText(k);
-        txtAlamat.setText(l);
     }//GEN-LAST:event_tblSiswaMouseClicked
 
-    private String escapeCsv(String data) {
-        if (data == null) {
-            return "\"\""; // Represent null as an empty quoted string
-        }
-        // Escape double quotes by doubling them: " -> ""
-        String escapedData = data.replace("\"", "\"\"");
-        // If data contains comma, double quote, or newline, enclose in double quotes
-        if (data.contains(",") || data.contains("\"") || data.contains("\n") || data.contains("\r")) {
-            return "\"" + escapedData + "\"";
-        }
-        // Otherwise, return the (potentially quote-escaped) data as is
-        return escapedData;
-    }
-
+    // Removed unused escapeCsv method
     /**
      * @param args the command line arguments
      */
