@@ -1,27 +1,27 @@
--- Simplified table creations
+-- Simplified table creations with all IDs as AUTO_INCREMENT INT
 CREATE TABLE `data_absensi` (
-  `id` varchar(100) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, -- Changed to INT AUTO_INCREMENT PRIMARY KEY
   `nama` varchar(100) NOT NULL,
   `nis` varchar(100) NOT NULL,
-  `kelas` varchar(100) NOT NULL, -- This will be kept, new FK 'kelas_id' will be added
+  `kelas` varchar(100) NOT NULL, -- This original 'kelas' column is kept for now. 'kelas_id' (FK) will be INT.
   `keterangan` varchar(100) NOT NULL,
   `tanggal` date NOT NULL
 );
 
 CREATE TABLE `data_kelas` (
-  `id` varchar(20) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, -- Changed to INT AUTO_INCREMENT PRIMARY KEY
   `kelas` varchar(255) NOT NULL,
   `ruangan` varchar(255) NOT NULL,
-  `wali_kelas` varchar(255) NOT NULL, -- This will be kept (name of wali_kelas), new FK 'guru_id_wali_kelas' will be added
+  `wali_kelas` varchar(255) NOT NULL, -- This original 'wali_kelas' column is kept. 'guru_id_wali_kelas' (FK) is INT.
   `ketua_kelas` varchar(255) NOT NULL,
   `tahun_ajaran` varchar(25) NOT NULL
 );
 
 CREATE TABLE `data_nilai` (
-  `id` varchar(255) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, -- Changed to INT AUTO_INCREMENT PRIMARY KEY
   `nama` varchar(255) NOT NULL,
   `nis` varchar(100) NOT NULL,
-  `kelas` varchar(50) NOT NULL, -- This will be kept, new FK 'kelas_id' will be added
+  `kelas` varchar(50) NOT NULL, -- This original 'kelas' column is kept for now. 'kelas_id' (FK) will be INT.
   `nilai_tugas` float NOT NULL,
   `nilai_uts` float NOT NULL,
   `nilai_uas` float NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE `data_nilai` (
 );
 
 CREATE TABLE `data_siswa` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `Nama` varchar(250) NOT NULL,
   `NISN` varchar(255) NOT NULL,
   `NIK` varchar(255) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE `data_siswa` (
 );
 
 CREATE TABLE `guru` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `nip` varchar(255) NOT NULL,
   `nama` varchar(255) NOT NULL,
   `tgl_lahir` date NOT NULL,
@@ -55,14 +55,14 @@ CREATE TABLE `guru` (
 );
 
 CREATE TABLE `pengguna` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` varchar(25) NOT NULL
 );
 
 CREATE TABLE `spp_pembayaran` (
-  `id` varchar(255) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, -- Changed to INT AUTO_INCREMENT PRIMARY KEY
   `nama` varchar(255) NOT NULL, -- This will be kept (student name), new FK 'siswa_id' will be added
   `bulan` varchar(255) NOT NULL,
   `tgl` date NOT NULL,
@@ -77,37 +77,19 @@ ALTER TABLE `spp_pembayaran`
 
 ALTER TABLE `data_nilai`
   ADD COLUMN `siswa_id` INT NOT NULL AFTER `nis`,
-  ADD COLUMN `kelas_id` VARCHAR(20) NOT NULL AFTER `kelas`;
+  ADD COLUMN `kelas_id` INT NOT NULL AFTER `kelas`; -- Changed kelas_id to INT
 
 ALTER TABLE `data_absensi`
   ADD COLUMN `siswa_id` INT NOT NULL AFTER `nis`,
-  ADD COLUMN `kelas_id` VARCHAR(20) NOT NULL AFTER `kelas`;
+  ADD COLUMN `kelas_id` INT NOT NULL AFTER `kelas`; -- Changed kelas_id to INT
 
 ALTER TABLE `data_kelas`
   ADD COLUMN `guru_id_wali_kelas` INT NULL AFTER `wali_kelas`;
 
--- Add Primary Keys (from original dump)
-ALTER TABLE `data_absensi`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `data_kelas`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `data_nilai`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `data_siswa`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `guru`
-  ADD PRIMARY KEY (`id`);
-
+-- ALTER TABLE `pengguna`
+--  ADD PRIMARY KEY (`id`);
 ALTER TABLE `pengguna`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
-
-ALTER TABLE `spp_pembayaran`
-  ADD PRIMARY KEY (`id`);
+  ADD UNIQUE KEY `username` (`username`); -- This was part of the original ALTER, keep it.
 
 -- Add Unique Constraints for 1-to-1 relationships or FK targets if needed
 -- For 1-to-1 relationship: a guru can be wali_kelas of at most one class
@@ -141,12 +123,3 @@ ALTER TABLE `data_absensi`
 ALTER TABLE `data_kelas`
   ADD CONSTRAINT `fk_data_kelas_guru_wali` FOREIGN KEY (`guru_id_wali_kelas`) REFERENCES `guru` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Modify ID auto_increment (from original dump)
-ALTER TABLE `data_siswa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
-ALTER TABLE `guru`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
-ALTER TABLE `pengguna`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
