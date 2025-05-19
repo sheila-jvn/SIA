@@ -3,41 +3,20 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package form;
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
-import java.awt.Color;
+
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 import koneksi.KoneksiDB;
-import javax.swing.ButtonGroup;
 import javax.swing.JSpinner;
-import java.util.Date;
 
 /**
  *
  * @author sheila
  */
 public class spp_pembayaran extends javax.swing.JFrame {
+
     public String id, nama, nisn, tgl_lahir, jk;
     private Connection conn = new KoneksiDB().koneksi();
     private DefaultTableModel tabmode;
@@ -60,12 +39,12 @@ public class spp_pembayaran extends javax.swing.JFrame {
             }
         });
     }
-    
+
     protected void aktif() {
         txtid.requestFocus();
         tgl.setEditor(new JSpinner.DateEditor(tgl, "yyyy/MM/dd"));
     }
-    
+
     protected void kosong() {
         txtid.setText("");
         txtnm.setText("");
@@ -78,7 +57,7 @@ public class spp_pembayaran extends javax.swing.JFrame {
         txtjmlbayar.setText(String.valueOf(totalSPP));
         updateTotalSudahDibayar();
     }
-    
+
     private void hitungTunggakan() {
         try {
             int bayar = Integer.parseInt(txtBayar.getText());
@@ -88,22 +67,25 @@ public class spp_pembayaran extends javax.swing.JFrame {
             txtTunggakan.setText("");
         }
     }
-    
+
     private void updateTotalSudahDibayar() {
         int total = 0;
         for (int i = 0; i < tblpembayaran.getRowCount(); i++) {
             try {
                 total += Integer.parseInt(tblpembayaran.getValueAt(i, 2).toString());
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         txttotal.setText(String.valueOf(total));
     }
-    
+
     protected void datatable() {
         Object[] Baris = {"ID", "Nama", "Bulan", "Tanggal", "SPP"};
         tabmode = new DefaultTableModel(null, Baris);
         String id = txtid.getText();
-        if (id.isEmpty()) return;
+        if (id.isEmpty()) {
+            return;
+        }
         try {
             String sql = "SELECT id, nama, bulan, tgl, bayar FROM spp_pembayaran WHERE id = '" + id + "' ORDER BY tgl ASC";
             Statement stat = conn.createStatement();
@@ -123,7 +105,7 @@ public class spp_pembayaran extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Data gagal dipanggil: " + e.getMessage());
         }
     }
-    
+
     public void itemTerpilihSiswa() {
         popupsiswa Ps = new popupsiswa();
         Ps.siswa = this;
@@ -462,7 +444,7 @@ public class spp_pembayaran extends javax.swing.JFrame {
             java.util.Date utilDate = (java.util.Date) tgl.getValue();
 
             java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-            
+
             stat.setString(1, txtid.getText());
             stat.setString(2, txtnm.getText());
             stat.setString(3, cbbulan.getSelectedItem().toString());
@@ -520,8 +502,10 @@ public class spp_pembayaran extends javax.swing.JFrame {
     }//GEN-LAST:event_txtcariKeyPressed
 
     private void tblpembayaranMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblpembayaranMouseClicked
-    int bar = tblpembayaran.getSelectedRow();
-        if (bar == -1) return;
+        int bar = tblpembayaran.getSelectedRow();
+        if (bar == -1) {
+            return;
+        }
         txtid.setText(tabmode.getValueAt(bar, 0).toString());
         txtnm.setText(tabmode.getValueAt(bar, 1).toString());
         String bulan = tabmode.getValueAt(bar, 2).toString();
