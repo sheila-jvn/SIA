@@ -588,6 +588,11 @@ public class PembayaranSPP extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Jumlah bayar harus lebih besar dari 0.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            // Validate against SPP_PER_BULAN
+            if (jumlahBayar.compareTo(SPP_PER_BULAN) < 0) {
+                JOptionPane.showMessageDialog(this, "Jumlah bayar tidak boleh kurang dari " + currencyFormatter.format(SPP_PER_BULAN) + ".", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Jumlah Bayar harus berupa angka yang valid.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -720,6 +725,11 @@ public class PembayaranSPP extends javax.swing.JFrame {
             jumlahBayar = new BigDecimal(strJumlahBayar.replace(",", ""));
             if (jumlahBayar.compareTo(BigDecimal.ZERO) <= 0) {
                 JOptionPane.showMessageDialog(this, "Jumlah bayar harus lebih besar dari 0.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Validate against SPP_PER_BULAN
+            if (jumlahBayar.compareTo(SPP_PER_BULAN) < 0) {
+                JOptionPane.showMessageDialog(this, "Jumlah bayar tidak boleh kurang dari " + currencyFormatter.format(SPP_PER_BULAN) + ".", "Validasi Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         } catch (NumberFormatException e) {
