@@ -42,7 +42,7 @@ public class Siswa extends javax.swing.JFrame {
     protected void loadTable() {
         Object[] Baris = {"ID", "Nama Siswa", "NISN", "NIK", "KK", "Tanggal Lahir", "Jenis Kelamin", "Nama Ayah", "NIK Ayah", "Nama Ibu", "NIK Ibu", "Alamat"};
         tabmode = new DefaultTableModel(null, Baris);
-        String cariitem = txtcari.getText();
+        String cariitem = txtSearch.getText();
 
         try {
             String sql = "Select * FROM data_siswa where id like '%" + cariitem + "%' or Nama like '%" + cariitem + "%' order by id asc";
@@ -64,7 +64,7 @@ public class Siswa extends javax.swing.JFrame {
                     hasil.getString(12)
                 });
             }
-            tblsiswa.setModel(tabmode);
+            tblSiswa.setModel(tabmode);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "data gagal dipanggil" + e);
         }
@@ -96,9 +96,9 @@ public class Siswa extends javax.swing.JFrame {
         btnDelete = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        tblsiswa = new javax.swing.JTable();
-        txtcari = new javax.swing.JTextField();
-        bcari = new javax.swing.JButton();
+        tblSiswa = new javax.swing.JTable();
+        txtSearch = new javax.swing.JTextField();
+        btnSearch = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         jLabel13 = new javax.swing.JLabel();
         jLabel14 = new javax.swing.JLabel();
@@ -162,7 +162,7 @@ public class Siswa extends javax.swing.JFrame {
             }
         });
 
-        tblsiswa.setModel(new javax.swing.table.DefaultTableModel(
+        tblSiswa.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null, null, null, null, null, null, null},
                 {null, null, null, null, null, null, null, null, null, null},
@@ -173,28 +173,23 @@ public class Siswa extends javax.swing.JFrame {
                 "Nama Siswa", "NISN", "NIK", "KK", "Tempat Tanggal Lahir ", "Nama Ayah ", "NIK Ayah ", "Nama Ibu ", "NIK Ibu ", "Alamat "
             }
         ));
-        tblsiswa.addMouseListener(new java.awt.event.MouseAdapter() {
+        tblSiswa.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblsiswaMouseClicked(evt);
+                tblSiswaMouseClicked(evt);
             }
         });
-        jScrollPane1.setViewportView(tblsiswa);
+        jScrollPane1.setViewportView(tblSiswa);
 
-        txtcari.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtcariActionPerformed(evt);
-            }
-        });
-        txtcari.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                txtcariKeyPressed(evt);
+                txtSearchKeyPressed(evt);
             }
         });
 
-        bcari.setText("Cari");
-        bcari.addActionListener(new java.awt.event.ActionListener() {
+        btnSearch.setText("Cari");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bcariActionPerformed(evt);
+                btnSearchActionPerformed(evt);
             }
         });
 
@@ -288,9 +283,9 @@ public class Siswa extends javax.swing.JFrame {
                                 .addComponent(txtNikIbu, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(29, 29, 29)
-                        .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(bcari))
+                        .addComponent(btnSearch))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(15, 15, 15)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1013, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -416,8 +411,8 @@ public class Siswa extends javax.swing.JFrame {
                         .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(31, 31, 31)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtcari, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bcari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 293, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 21, Short.MAX_VALUE))
@@ -520,31 +515,27 @@ public class Siswa extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
-    private void txtcariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtcariActionPerformed
-
-    }//GEN-LAST:event_txtcariActionPerformed
-
-    private void bcariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bcariActionPerformed
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         loadTable();
-    }//GEN-LAST:event_bcariActionPerformed
+    }//GEN-LAST:event_btnSearchActionPerformed
 
     private void jScrollPane1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jScrollPane1MouseClicked
 
     }//GEN-LAST:event_jScrollPane1MouseClicked
 
-    private void txtcariKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtcariKeyPressed
+    private void txtSearchKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             loadTable();
         }
-    }//GEN-LAST:event_txtcariKeyPressed
+    }//GEN-LAST:event_txtSearchKeyPressed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         reset();
         loadTable();
     }//GEN-LAST:event_btnResetActionPerformed
 
-    private void tblsiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblsiswaMouseClicked
-        int bar = tblsiswa.getSelectedRow();
+    private void tblSiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblSiswaMouseClicked
+        int bar = tblSiswa.getSelectedRow();
         String a = tabmode.getValueAt(bar, 0).toString();
         String b = tabmode.getValueAt(bar, 1).toString();
         String c = tabmode.getValueAt(bar, 2).toString();
@@ -584,7 +575,7 @@ public class Siswa extends javax.swing.JFrame {
         txtNamaIbu.setText(j);
         txtNikIbu.setText(k);
         txtAlamat.setText(l);
-    }//GEN-LAST:event_tblsiswaMouseClicked
+    }//GEN-LAST:event_tblSiswaMouseClicked
 
     private String escapeCsv(String data) {
         if (data == null) {
@@ -637,11 +628,11 @@ public class Siswa extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton bcari;
     private javax.swing.JButton btnCreate;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnReset;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JLabel jLabel1;
@@ -662,7 +653,7 @@ public class Siswa extends javax.swing.JFrame {
     private javax.swing.JRadioButton rlaki;
     private javax.swing.JRadioButton rperempuan;
     private javax.swing.JSpinner spnTanggalLahir;
-    private javax.swing.JTable tblsiswa;
+    private javax.swing.JTable tblSiswa;
     private javax.swing.JTextField txtAlamat;
     private javax.swing.JTextField txtNama;
     private javax.swing.JTextField txtNamaAyah;
@@ -672,6 +663,6 @@ public class Siswa extends javax.swing.JFrame {
     private javax.swing.JTextField txtNis;
     private javax.swing.JTextField txtNisn;
     private javax.swing.JTextField txtNoKk;
-    private javax.swing.JTextField txtcari;
+    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
