@@ -78,10 +78,6 @@
                       <Component id="txt_cariData" min="-2" pref="254" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnCari" min="-2" pref="93" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
-                      <Component id="btnCSV" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="btnPDF" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
@@ -192,8 +188,6 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnCari" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
                   <Component id="txt_cariData" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
-                  <Component id="btnCSV" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
-                  <Component id="btnPDF" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jScrollPane1" min="-2" pref="315" max="-2" attributes="0"/>
@@ -378,22 +372,6 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCariActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="btnCSV">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Export CSV"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCSVActionPerformed"/>
-      </Events>
-    </Component>
-    <Component class="javax.swing.JButton" name="btnPDF">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Print PDF"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPDFActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JSpinner" name="tglLahir">

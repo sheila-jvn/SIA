@@ -4,29 +4,10 @@
  */
 package form;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
-import java.awt.Color;
 import java.sql.*;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import koneksi.KoneksiDB;
 import javax.swing.JSpinner;
 
@@ -129,8 +110,6 @@ public class guru extends javax.swing.JFrame {
         tblGuru = new javax.swing.JTable();
         txt_cariData = new javax.swing.JTextField();
         btnCari = new javax.swing.JButton();
-        btnCSV = new javax.swing.JButton();
-        btnPDF = new javax.swing.JButton();
         tglLahir = new javax.swing.JSpinner();
 
         jCheckBoxMenuItem1.setSelected(true);
@@ -237,20 +216,6 @@ public class guru extends javax.swing.JFrame {
             }
         });
 
-        btnCSV.setText("Export CSV");
-        btnCSV.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCSVActionPerformed(evt);
-            }
-        });
-
-        btnPDF.setText("Print PDF");
-        btnPDF.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnPDFActionPerformed(evt);
-            }
-        });
-
         tglLahir.setModel(new javax.swing.SpinnerDateModel(new java.util.Date(), null, new java.util.Date(), java.util.Calendar.DAY_OF_MONTH));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -297,11 +262,7 @@ public class guru extends javax.swing.JFrame {
                         .addGap(40, 40, 40)
                         .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(26, 26, 26)
-                        .addComponent(btnCSV)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnPDF))
+                        .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(17, 17, 17)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 876, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -384,9 +345,7 @@ public class guru extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCSV, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnPDF, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(25, 25, 25))
@@ -550,152 +509,6 @@ public class guru extends javax.swing.JFrame {
         return escapedData;
     }
 
-    private void btnCSVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCSVActionPerformed
-        String defaultFolder = System.getProperty("user.home");
-        String filePath = defaultFolder + File.separator + "data_guru_export.csv";
-
-        String cariitem = txt_cariData.getText();
-
-        String[] headers = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            writer.write(String.join(",", headers));
-            writer.newLine();
-
-            String sql = "Select * FROM guru where id like '%" + cariitem + "%' or nama like '%" + cariitem + "%' order by id asc";
-
-            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
-                while (hasil.next()) {
-                    List<String> rowData = new ArrayList<>();
-
-                    rowData.add(escapeCsv(hasil.getString(1))); // ID
-                    rowData.add(escapeCsv(hasil.getString(2))); // NIP
-                    rowData.add(escapeCsv(hasil.getString(3))); // Nama
-                    java.sql.Date tglLahir = hasil.getDate(4);
-                    rowData.add(escapeCsv(tglLahir == null ? "" : tglLahir.toString()));
-                    rowData.add(escapeCsv(hasil.getString(5))); // JK
-                    rowData.add(escapeCsv(hasil.getString(6))); // No. Telp
-                    rowData.add(escapeCsv(hasil.getString(7))); // Mapel
-                    rowData.add(escapeCsv(hasil.getString(8))); // Wali Kelas
-
-                    // Join the escaped data with commas and write the row
-                    writer.write(String.join(",", rowData));
-                    writer.newLine();
-                }
-
-                JOptionPane.showMessageDialog(this,
-                        "Data berhasil diekspor ke:\n" + filePath,
-                        "Ekspor Berhasil",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this,
-                        "Gagal mengambil data dari database: " + e.getMessage(),
-                        "Database Error",
-                        JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace(); // Good for debugging
-
-            }
-
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Gagal menulis file CSV: " + e.getMessage(),
-                    "File Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
-
-    }//GEN-LAST:event_btnCSVActionPerformed
-
-    private void btnPDFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPDFActionPerformed
-        String defaultFolder = System.getProperty("user.home");
-        String filePath = defaultFolder + File.separator + "data_guru_lengkap.pdf";
-
-        Document document = new Document(PageSize.A4.rotate());
-
-        try {
-            PdfWriter.getInstance(document, new FileOutputStream(filePath));
-
-            document.open();
-
-            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
-            Paragraph title = new Paragraph("Data Lengkap Guru", titleFont);
-            title.setAlignment(Element.ALIGN_CENTER);
-            title.setSpacingAfter(20);
-            document.add(title);
-
-            PdfPTable pdfTable = new PdfPTable(8);
-            pdfTable.setWidthPercentage(100);
-
-            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD, Color.WHITE);
-            PdfPCell cell = new PdfPCell();
-            cell.setBackgroundColor(Color.GRAY);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            cell.setPadding(5);
-
-            // Add table headers
-            String[] headers = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
-            for (String header : headers) {
-                cell.setPhrase(new Phrase(header, headerFont));
-                pdfTable.addCell(cell);
-            }
-            pdfTable.setHeaderRows(1);
-
-            String sql = "SELECT * FROM guru ORDER BY id ASC";
-
-            try (Statement stat = conn.createStatement(); ResultSet hasil = stat.executeQuery(sql)) {
-                // Define data cell font
-                Font dataFont = new Font(Font.HELVETICA, 9);
-                PdfPCell dataCell = new PdfPCell();
-                dataCell.setPadding(4);
-                dataCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-
-                while (hasil.next()) {
-                    dataCell.setPhrase(new Phrase(hasil.getString(1) == null ? "" : hasil.getString(1), dataFont)); // ID
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(2) == null ? "" : hasil.getString(2), dataFont)); // NIP
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(3) == null ? "" : hasil.getString(3), dataFont)); // Nama
-                    pdfTable.addCell(dataCell);
-                    java.sql.Date tglLahir = hasil.getDate(4);
-                    dataCell.setPhrase(new Phrase(tglLahir == null ? "" : tglLahir.toString(), dataFont)); // Tgl Lahir
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(5) == null ? "" : hasil.getString(5), dataFont)); // JK
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(6) == null ? "" : hasil.getString(6), dataFont)); // No. Telp
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(7) == null ? "" : hasil.getString(7), dataFont)); // Mapel
-                    pdfTable.addCell(dataCell);
-                    dataCell.setPhrase(new Phrase(hasil.getString(8) == null ? "" : hasil.getString(8), dataFont)); // Wakel
-                    pdfTable.addCell(dataCell);
-                }
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this,
-                        "Gagal mengambil data dari database: " + e.getMessage(),
-                        "Database Error",
-                        JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            }
-
-            document.add(pdfTable);
-
-            JOptionPane.showMessageDialog(this,
-                    "Data lengkap berhasil diekspor ke PDF:\n" + filePath,
-                    "Ekspor PDF Berhasil",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (DocumentException | FileNotFoundException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Gagal membuat file PDF: " + e.getMessage(),
-                    "PDF Error",
-                    JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        } finally {
-            if (document != null && document.isOpen()) {
-                document.close();
-            }
-        }
-    }//GEN-LAST:event_btnPDFActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -733,11 +546,9 @@ public class guru extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBatal;
-    private javax.swing.JButton btnCSV;
     private javax.swing.JButton btnCari;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnKeluar;
-    private javax.swing.JButton btnPDF;
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnUbah;
     private javax.swing.ButtonGroup buttonGroup1;

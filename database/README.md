@@ -22,13 +22,13 @@ The database is designed to manage information for an academic institution, cove
 
     - Most foreign keys use `ON UPDATE CASCADE`, ensuring that updates to parent primary keys are propagated to child foreign keys.
     - For `ON DELETE` behavior, the schema uses a mixed approach:
-        - Many foreign keys use `ON DELETE RESTRICT` as a safe default. This prevents the deletion of a parent record if dependent child records exist (e.g., deleting a `tahun_ajaran` if `kelas` records still refer to it).
-        - **`ON DELETE SET NULL`** is used in specific cases to allow parent deletion while preserving child records by nullifying the link:
-            - `mata_pelajaran.id_guru`: If a `guru` assigned to a `mata_pelajaran` is deleted, the `id_guru` in `mata_pelajaran` becomes `NULL`.
-            - `kelas.id_guru_wali`: If a `guru` who is a homeroom teacher (`wali_kelas`) is deleted, the `id_guru_wali` in the `kelas` table is set to `NULL`. The class continues to exist but without that specific homeroom teacher assigned.
-        - **`ON DELETE CASCADE`** is used where child records are intrinsically part of the parent and should not exist independently:
-            - `kehadiran.id_siswa`: If a `siswa` record is deleted, all associated attendance records in `kehadiran` are also deleted.
-            - `nilai.id_siswa`: If a `siswa` record is deleted, all associated grade records in `nilai` are also deleted.
+      - Many foreign keys use `ON DELETE RESTRICT` as a safe default. This prevents the deletion of a parent record if dependent child records exist (e.g., deleting a `tahun_ajaran` if `kelas` records still refer to it).
+      - **`ON DELETE SET NULL`** is used in specific cases to allow parent deletion while preserving child records by nullifying the link:
+        - `mata_pelajaran.id_guru`: If a `guru` assigned to a `mata_pelajaran` is deleted, the `id_guru` in `mata_pelajaran` becomes `NULL`.
+        - `kelas.id_guru_wali`: If a `guru` who is a homeroom teacher (`wali_kelas`) is deleted, the `id_guru_wali` in the `kelas` table is set to `NULL`. The class continues to exist but without that specific homeroom teacher assigned.
+      - **`ON DELETE CASCADE`** is used where child records are intrinsically part of the parent and should not exist independently:
+        - `kehadiran.id_siswa`: If a `siswa` record is deleted, all associated attendance records in `kehadiran` are also deleted.
+        - `nilai.id_siswa`: If a `siswa` record is deleted, all associated grade records in `nilai` are also deleted.
     - This differentiated `ON DELETE` strategy reflects varying business rules for data lifecycle management across different entities.
 
 4.  **Collation Strategy:**
@@ -42,14 +42,14 @@ The database is designed to manage information for an academic institution, cove
 
     - All tables use a surrogate `id` column (typically `INT AUTO_INCREMENT`) as their primary key.
     - In addition to primary keys, several columns have `UNIQUE` constraints to enforce data integrity and prevent duplicate entries for critical identifiers:
-        - `user.username`
-        - `tingkat.nama`
-        - `guru.nip` (Note: `nip` can be `NULL`, but if a value is present, it must be unique)
-        - `siswa.nis` (Note: `nis` can be `NULL`, but if a value is present, it must be unique)
-        - `siswa.nisn`
-        - `kelas.id_guru_wali` (Note: `id_guru_wali` can be `NULL`, but if a value is present, it must be unique, ensuring a teacher is a homeroom teacher for at most one class)
-        - `kehadiran_status.nama`
-        - `nilai_jenis.nama`
+      - `user.username`
+      - `tingkat.nama`
+      - `guru.nip` (Note: `nip` can be `NULL`, but if a value is present, it must be unique)
+      - `siswa.nis` (Note: `nis` can be `NULL`, but if a value is present, it must be unique)
+      - `siswa.nisn`
+      - `kelas.id_guru_wali` (Note: `id_guru_wali` can be `NULL`, but if a value is present, it must be unique, ensuring a teacher is a homeroom teacher for at most one class)
+      - `kehadiran_status.nama`
+      - `nilai_jenis.nama`
 
 ## Core Tables:
 
