@@ -123,3 +123,68 @@ CREATE TABLE `pembayaran_spp` (
   FOREIGN KEY (`id_siswa`) REFERENCES `siswa`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE, -- RESTRICT delete if payments exist
   FOREIGN KEY (`id_tahun_ajaran`) REFERENCES `tahun_ajaran`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+-- ### User Authentication ###
+INSERT INTO `user` (`username`, `password`) VALUES
+('admin', 'admin'),
+('username', 'password');
+
+-- ### Academic Year Information ###
+INSERT INTO `tahun_ajaran` (`nama`, `tahun_mulai`, `tahun_selesai`) VALUES
+('2023/2024 Ganjil', 2023, 2024),
+('2023/2024 Genap', 2023, 2024),
+('2024/2025 Ganjil', 2024, 2025);
+
+-- ### Grade Level Information ###
+INSERT INTO `tingkat` (`nama`) VALUES
+('Kelas 10'),
+('Kelas 11'),
+('Kelas 12');
+
+-- ### Teacher Information ###
+INSERT INTO `guru` (`nip`, `nama`, `tanggal_lahir`, `jenis_kelamin`, `no_telpon`) VALUES
+('198001012005011001', 'Budi Santoso', '1980-01-01', 1, '081234567890'),
+('198505052008012002', 'Siti Aminah', '1985-05-05', 0, '081234567891'),
+(NULL, 'Retno Wulandari', '1990-10-10', 0, '081234567892');
+
+-- ### Student Information ###
+INSERT INTO `siswa` (`nis`, `nisn`, `nama`, `no_kk`, `tanggal_lahir`, `jenis_kelamin`, `nama_ayah`, `nama_ibu`, `nik_ayah`, `nik_ibu`, `alamat`) VALUES
+('1001', '0012345678', 'Agus Setiawan', '3201010101000001', '2007-08-17', 1, 'Herman Setiawan', 'Sri Lestari', '3201010101700001', '3201010101750002', 'Jl. Merdeka No. 1'),
+('1002', '0023456789', 'Dewi Anggraini', '3201010101000002', '2007-05-20', 0, 'Joko Susilo', 'Rina Marlina', '3201010101680003', '3201010101720004', 'Jl. Pahlawan No. 10'),
+('1003', '0034567890', 'Citra Ayu', '3201010101000003', '2006-11-10', 0, 'Bambang Irawan', 'Nina Kartika', '3201010101650005', '3201010101690006', 'Jl. Kemerdekaan No. 5');
+
+-- ### Subject Information ###
+-- Assuming id_tingkat: 1 for Kelas 10, 2 for Kelas 11, 3 for Kelas 12
+-- Assuming id_guru: 1 for Budi Santoso, 2 for Siti Aminah, 3 for Retno Wulandari
+INSERT INTO `mata_pelajaran` (`id_tingkat`, `id_guru`, `nama`) VALUES
+(1, 1, 'Matematika Wajib'),
+(1, 2, 'Bahasa Indonesia'),
+(1, 3, 'Bahasa Inggris'),
+(2, 1, 'Fisika'),
+(2, 2, 'Kimia'),
+(3, 3, 'Biologi');
+
+-- ### Class Information ###
+-- Assuming id_tahun_ajaran: 1 for 2023/2024 Ganjil, 2 for 2023/2024 Genap, 3 for 2024/2025 Ganjil
+-- Assuming id_tingkat: 1 for Kelas 10, 2 for Kelas 11, 3 for Kelas 12
+-- Assuming id_guru_wali: 1 for Budi Santoso, 2 for Siti Aminah (ensure guru id_guru_wali is unique if you add more)
+INSERT INTO `kelas` (`id_tahun_ajaran`, `id_tingkat`, `id_guru_wali`, `nama`) VALUES
+(1, 1, 1, '10-A'),
+(1, 1, 2, '10-B'),
+(3, 2, 3, '11-IPA-1');
+
+
+-- ### Attendance Status ###
+INSERT INTO `kehadiran_status` (`nama`) VALUES
+('Hadir'),
+('Sakit'),
+('Izin'),
+('Alpha');
+
+-- ### Grade Types ###
+INSERT INTO `nilai_jenis` (`nama`) VALUES
+('Tugas Harian'),
+('Ulangan Harian'),
+('UTS'),
+('UAS'),
+('Praktikum');
