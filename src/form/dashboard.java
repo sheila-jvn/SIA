@@ -160,7 +160,7 @@ public class dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_btnMenuGuruActionPerformed
 
     private void btnMenuSiswaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuSiswaActionPerformed
-        FormDataSiswa formSiswa = new FormDataSiswa();
+        Siswa formSiswa = new Siswa();
         formSiswa.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuSiswaActionPerformed
