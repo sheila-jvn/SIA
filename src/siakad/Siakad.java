@@ -4,7 +4,7 @@
  */
 package siakad;
 
-import form.dashboard;
+import form.Login;
 
 /**
  *
@@ -16,9 +16,8 @@ public class Siakad {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        dashboard Dashboard = new dashboard();
-        Dashboard.setVisible(true);
+        Login loginForm = new Login();
+        loginForm.setVisible(true);
     }
 
 }
-    

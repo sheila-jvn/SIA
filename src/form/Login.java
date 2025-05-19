@@ -3,23 +3,47 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package form;
-import koneksi.KoneksiDB;
+
+import database.Database;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
+
 /**
  *
  * @author sheila
  */
-public class login extends javax.swing.JFrame {
+public class Login extends javax.swing.JFrame {
+
+    private Connection conn;
 
     /**
      * Creates new form login
      */
-    public login() {
+    public Login() {
         initComponents();
+        try {
+            this.conn = Database.getConnection();
+        } catch (SQLException e) {
+            // Database.getConnection() already shows a JOptionPane on failure.
+            // Log the error and disable login functionality.
+            System.err.println("Login form constructor: Database connection failed: " + e.getMessage());
+            // Disable UI components if connection fails
+            if (btnLogin != null) {
+                btnLogin.setEnabled(false);
+            }
+            if (txtUsername != null) {
+                txtUsername.setEnabled(false);
+            }
+            if (txtPassword != null) {
+                txtPassword.setEnabled(false);
+            }
+            // Optionally, show an additional dialog indicating the form is not operational,
+            // though Database.getConnection() likely already showed one.
+            // JOptionPane.showMessageDialog(this, "Form login tidak dapat digunakan karena koneksi database gagal.", "Inisialisasi Gagal", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -113,39 +137,42 @@ public class login extends javax.swing.JFrame {
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         String username = txtUsername.getText();
         String password = new String(txtPassword.getPassword());
-        
+
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Username dan Password tidak boleh kosong!", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        Connection conn = null;
+        // Connection conn is now an instance variable this.conn, initialized in the constructor.
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        try {
-            conn = KoneksiDB.koneksi(); 
+        if (this.conn == null) {
+            JOptionPane.showMessageDialog(this, "Koneksi database tidak tersedia karena gagal diinisialisasi. Login tidak dapat diproses.", "Error Koneksi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-            String sql = "SELECT username, password, role FROM pengguna WHERE username = ?";
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, username); 
+        try {
+            // Use this.conn, which should have been initialized in the constructor.
+            String sql = "SELECT username, password FROM user WHERE username = ?";
+            pstmt = this.conn.prepareStatement(sql);
+            pstmt.setString(1, username);
 
             rs = pstmt.executeQuery();
 
-            if (rs.next()) { 
+            if (rs.next()) {
                 String dbPassword = rs.getString("password");
-                String role = rs.getString("role");
 
                 if (password.equals(dbPassword)) {
-                    JOptionPane.showMessageDialog(this, "Login Berhasil! Selamat Datang " + username + " (" + role + ")", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Login Berhasil! Selamat Datang " + username, "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
                     this.dispose();
-                    
+
                     dashboard dashboard = new dashboard();
                     dashboard.setVisible(true);
                 } else {
                     JOptionPane.showMessageDialog(this, "Password salah!", "Login Gagal", JOptionPane.ERROR_MESSAGE);
-                    txtPassword.setText(""); 
+                    txtPassword.setText("");
                     txtPassword.requestFocus();
                 }
             } else {
@@ -157,7 +184,6 @@ public class login extends javax.swing.JFrame {
 
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Terjadi kesalahan database: " + e.getMessage(), "Error DB", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace(); 
         } finally {
             try {
                 if (rs != null) {
@@ -166,6 +192,7 @@ public class login extends javax.swing.JFrame {
                 if (pstmt != null) {
                     pstmt.close();
                 }
+                // Connection is managed by Database.java, no need to close conn here
             } catch (SQLException e) {
                 System.err.println("Error saat menutup resource: " + e.getMessage());
             }
@@ -174,12 +201,12 @@ public class login extends javax.swing.JFrame {
 
     private void btnBatalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBatalActionPerformed
         int confirmed = JOptionPane.showConfirmDialog(this,
-         "Apakah Anda yakin ingin keluar?", "Konfirmasi Keluar",
-         JOptionPane.YES_NO_OPTION);
-        
+                "Apakah Anda yakin ingin keluar?", "Konfirmasi Keluar",
+                JOptionPane.YES_NO_OPTION);
+
         if (confirmed == JOptionPane.YES_OPTION) {
-         KoneksiDB.tutupKoneksi();
-         System.exit(0);
+            Database.closeConnection();
+            System.exit(0);
         }
     }//GEN-LAST:event_btnBatalActionPerformed
 
@@ -200,20 +227,21 @@ public class login extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Login.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new login().setVisible(true);
+                new Login().setVisible(true);
             }
         });
     }
