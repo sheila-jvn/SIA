@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package koneksi;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,17 +14,18 @@ import javax.swing.JOptionPane;
  * @author sheila
  */
 public class KoneksiDB {
+
     private static Connection mysqlconfig;
-    
-    public static Connection koneksi(){
+
+    public static Connection koneksi() {
         if (mysqlconfig == null) {
             try {
                 String url = "jdbc:mysql://localhost/db_sia_sma";
-                String user = "root"; 
+                String user = "root";
                 String pass = "root";
 
                 DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
-  
+
                 mysqlconfig = DriverManager.getConnection(url, user, pass);
                 System.out.println("Koneksi database berhasil!");
 
@@ -34,6 +36,7 @@ public class KoneksiDB {
         }
         return mysqlconfig;
     }
+
     public static void tutupKoneksi() {
         try {
             if (mysqlconfig != null && !mysqlconfig.isClosed()) {
@@ -45,7 +48,7 @@ public class KoneksiDB {
             System.err.println("Gagal menutup koneksi: " + e.getMessage());
         }
     }
-    
+
     public static void main(String[] args) {
         Connection conn = KoneksiDB.koneksi();
         if (conn != null) {
@@ -56,4 +59,3 @@ public class KoneksiDB {
         }
     }
 }
-    

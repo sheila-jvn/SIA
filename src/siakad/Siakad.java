@@ -19,5 +19,5 @@ public class Siakad {
         dashboard Dashboard = new dashboard();
         Dashboard.setVisible(true);
     }
-    
+
 }
