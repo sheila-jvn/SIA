@@ -182,8 +182,8 @@ public class dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_btnMenuAbsensiActionPerformed
 
     private void btnMenuNilaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuNilaiActionPerformed
-        DataNilai Nilai = new DataNilai();
-        Nilai.setVisible(true);
+        DataNilai formNilai = new DataNilai();
+        formNilai.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuNilaiActionPerformed
 
