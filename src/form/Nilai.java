@@ -4,9 +4,16 @@
  */
 package form;
 
-import com.lowagie.text.pdf.AcroFields.Item;
+import database.Database;
 import java.awt.event.KeyEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -14,11 +21,224 @@ import javax.swing.JOptionPane;
  */
 public class Nilai extends javax.swing.JFrame {
 
+    private Connection conn;
+    private DefaultTableModel tabmode;
+    private String selectedNilaiId;
+
+    // Helper class for JComboBox items
+    private static class Item {
+
+        private int id;
+        private String description;
+
+        public Item(int id, String description) {
+            this.id = id;
+            this.description = description;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return description; // This is what JComboBox displays
+        }
+
+        // Override equals to help JComboBox select the correct item
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            Item item = (Item) obj;
+            return id == item.id && description.equals(item.description);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Integer.hashCode(id);
+            result = 31 * result + description.hashCode();
+            return result;
+        }
+    }
+
     /**
      * Creates new form Nilai
      */
     public Nilai() {
         initComponents();
+        lblSelectedNilai.setText("-");
+        selectedNilaiId = null;
+        try {
+            conn = Database.getConnection();
+            loadSiswaComboBox();
+            loadMataPelajaranComboBox();
+            loadKelasComboBox();
+            loadTahunAjaranComboBox();
+            loadJenisNilaiComboBox();
+            reset();
+            loadTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadSiswaComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM siswa ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbSiswa.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data siswa: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadMataPelajaranComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM mata_pelajaran ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbMataPelajaran.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data mata pelajaran: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadKelasComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM kelas ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbKelas.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data kelas: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadTahunAjaranComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM tahun_ajaran ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbTahunAjaran.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data tahun ajaran: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadJenisNilaiComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM nilai_jenis ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbJenisNilai.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data jenis nilai: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void reset() {
+        if (cmbSiswa.getItemCount() > 0) {
+            cmbSiswa.setSelectedIndex(0);
+        }
+        if (cmbMataPelajaran.getItemCount() > 0) {
+            cmbMataPelajaran.setSelectedIndex(0);
+        }
+        if (cmbKelas.getItemCount() > 0) {
+            cmbKelas.setSelectedIndex(0);
+        }
+        if (cmbTahunAjaran.getItemCount() > 0) {
+            cmbTahunAjaran.setSelectedIndex(0);
+        }
+        if (cmbJenisNilai.getItemCount() > 0) {
+            cmbJenisNilai.setSelectedIndex(0);
+        }
+
+        txtNilai.setText("");
+        spnTanggal.setValue(new java.util.Date()); // Current date
+        txtKeterangan.setText("");
+        txtSearch.setText("");
+        lblSelectedNilai.setText("-");
+        selectedNilaiId = null;
+    }
+
+    private void loadTable() {
+        Object[] Baris = {"ID", "Siswa", "Mata Pelajaran", "Kelas", "Tahun Ajaran", "Jenis Nilai", "Nilai", "Tanggal", "Keterangan"};
+        tabmode = new DefaultTableModel(null, Baris);
+        String cariitem = txtSearch.getText();
+
+        try {
+            String sql = "SELECT n.id, s.nama AS nama_siswa, mp.nama AS nama_mapel, k.nama AS nama_kelas, "
+                    + "ta.nama AS nama_tahun_ajaran, nj.nama AS nama_jenis_nilai, "
+                    + "n.nilai, n.tanggal_penilaian, n.keterangan "
+                    + "FROM nilai n "
+                    + "JOIN siswa s ON n.id_siswa = s.id "
+                    + "JOIN mata_pelajaran mp ON n.id_mata_pelajaran = mp.id "
+                    + "JOIN kelas k ON n.id_kelas = k.id "
+                    + "JOIN tahun_ajaran ta ON n.id_tahun_ajaran = ta.id "
+                    + "JOIN nilai_jenis nj ON n.id_jenis_nilai = nj.id "
+                    + "WHERE s.nama LIKE ? OR mp.nama LIKE ? OR k.nama LIKE ? OR nj.nama LIKE ? OR n.nilai LIKE ? "
+                    + "ORDER BY n.id ASC";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            String searchTerm = "%" + cariitem + "%";
+            stat.setString(1, searchTerm);
+            stat.setString(2, searchTerm);
+            stat.setString(3, searchTerm);
+            stat.setString(4, searchTerm);
+            stat.setString(5, searchTerm);
+            ResultSet hasil = stat.executeQuery();
+
+            while (hasil.next()) {
+                tabmode.addRow(new Object[]{
+                    hasil.getString("id"),
+                    hasil.getString("nama_siswa"),
+                    hasil.getString("nama_mapel"),
+                    hasil.getString("nama_kelas"),
+                    hasil.getString("nama_tahun_ajaran"),
+                    hasil.getString("nama_jenis_nilai"),
+                    hasil.getFloat("nilai"),
+                    hasil.getDate("tanggal_penilaian"),
+                    hasil.getString("keterangan")
+                });
+            }
+            tblNilai.setModel(tabmode);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Data nilai gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void resetUI() {
+        loadTable();
+        reset();
     }
 
     /**
@@ -57,6 +277,8 @@ public class Nilai extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         cmbMataPelajaran = new javax.swing.JComboBox<>();
         jLabel11 = new javax.swing.JLabel();
+        lblNilai = new javax.swing.JLabel();
+        txtNilai = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -155,6 +377,8 @@ public class Nilai extends javax.swing.JFrame {
 
         jLabel11.setText("Mata Pelajaran");
 
+        lblNilai.setText("Nilai");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -162,7 +386,7 @@ public class Nilai extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(66, 66, 66)
                 .addComponent(btnCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                 .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(65, 65, 65)
                 .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -172,7 +396,7 @@ public class Nilai extends javax.swing.JFrame {
                 .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(68, 68, 68))
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(350, 350, 350)
                         .addComponent(jLabel2))
@@ -184,92 +408,75 @@ public class Nilai extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(14, 14, 14)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 828, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addGap(6, 6, 6)
-                                            .addComponent(jLabel9)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(jLabel5))
-                                        .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING))
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(cmbKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 828, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addComponent(jLabel8)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                            .addComponent(lblSelectedNilai)
-                                            .addGap(145, 145, 145))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                            .addComponent(jLabel4)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                            .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel10)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(cmbJenisNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel7)
-                                .addGap(21, 21, 21)
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(lblSelectedNilai))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(6, 6, 6)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel9)
+                                            .addComponent(jLabel10)
+                                            .addComponent(jLabel4)
+                                            .addComponent(lblNilai))
+                                        .addGap(24, 24, 24)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(cmbSiswa, 0, 244, Short.MAX_VALUE)
+                                            .addComponent(cmbJenisNilai, 0, 244, Short.MAX_VALUE)
+                                            .addComponent(cmbTahunAjaran, 0, 244, Short.MAX_VALUE)
+                                            .addComponent(txtNilai))))
+                                .addGap(60, 60, 60)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel11)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel6))
+                                .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(spnTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(jLabel11)
-                                        .addGap(28, 28, 28)
-                                        .addComponent(cmbMataPelajaran, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                                .addGap(22, 22, 22)))))
-                .addContainerGap(42, Short.MAX_VALUE))
+                                    .addComponent(cmbMataPelajaran, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(cmbKelas, 0, 249, Short.MAX_VALUE)
+                                    .addComponent(spnTanggal)
+                                    .addComponent(jScrollPane2))))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addGap(38, 38, 38))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel11)
-                            .addComponent(cmbMataPelajaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(lblSelectedNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel9)
-                            .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(cmbKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel10)
-                            .addComponent(cmbJenisNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel6)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+                .addComponent(jLabel2)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSelectedNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11)
+                    .addComponent(cmbMataPelajaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(cmbJenisNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5)
+                    .addComponent(cmbKelas, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
+                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel7)
-                    .addComponent(spnTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(37, 37, 37)
+                    .addComponent(spnTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lblNilai)
+                        .addComponent(txtNilai, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -281,7 +488,7 @@ public class Nilai extends javax.swing.JFrame {
                     .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 346, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -291,50 +498,62 @@ public class Nilai extends javax.swing.JFrame {
     private void tblNilaiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblNilaiMouseClicked
         int baris = tblNilai.getSelectedRow();
         if (baris != -1) {
-            selectedKehadiranId = tblNilai.getValueAt(baris, 0).toString();
+            selectedNilaiId = tblNilai.getValueAt(baris, 0).toString();
             String namaSiswa = tblNilai.getValueAt(baris, 1).toString();
-            String namaKelas = tblNilai.getValueAt(baris, 2).toString();
-            String namaTahunAjaran = tblNilai.getValueAt(baris, 3).toString();
-            String namaStatus = tblNilai.getValueAt(baris, 4).toString();
-            java.sql.Date sqlDate = (java.sql.Date) tblNilai.getValueAt(baris, 5);
-            String keterangan = tblNilai.getValueAt(baris, 6) != null ? tblNilai.getValueAt(baris, 6).toString() : "";
+            String namaMataPelajaran = tblNilai.getValueAt(baris, 2).toString();
+            String namaKelas = tblNilai.getValueAt(baris, 3).toString();
+            String namaTahunAjaran = tblNilai.getValueAt(baris, 4).toString();
+            String namaJenisNilai = tblNilai.getValueAt(baris, 5).toString();
+            float nilai = Float.parseFloat(tblNilai.getValueAt(baris, 6).toString());
+            java.sql.Date sqlDate = (java.sql.Date) tblNilai.getValueAt(baris, 7);
+            String keterangan = tblNilai.getValueAt(baris, 8) != null ? tblNilai.getValueAt(baris, 8).toString() : "";
 
-            lblSelectedNilai.setText(namaSiswa + " (" + sqlDate.toString() + ")");
+            lblSelectedNilai.setText(namaSiswa + " - " + namaMataPelajaran + " (" + sqlDate.toString() + ")");
+            txtNilai.setText(String.valueOf(nilai));
             txtKeterangan.setText(keterangan);
+
             if (sqlDate != null) {
                 spnTanggal.setValue(new java.util.Date(sqlDate.getTime()));
             } else {
                 spnTanggal.setValue(new java.util.Date());
             }
 
-            // Select Siswa in ComboBox
+            // Select Siswa
             for (int i = 0; i < cmbSiswa.getItemCount(); i++) {
-                Item siswaItem = (Item) cmbSiswa.getItemAt(i);
-                if (siswaItem.getDescription().equals(namaSiswa)) {
+                Item item = (Item) cmbSiswa.getItemAt(i);
+                if (item.getDescription().equals(namaSiswa)) {
                     cmbSiswa.setSelectedIndex(i);
                     break;
                 }
             }
-            // Select Kelas in ComboBox
+            // Select Mata Pelajaran
+            for (int i = 0; i < cmbMataPelajaran.getItemCount(); i++) {
+                Item item = (Item) cmbMataPelajaran.getItemAt(i);
+                if (item.getDescription().equals(namaMataPelajaran)) {
+                    cmbMataPelajaran.setSelectedIndex(i);
+                    break;
+                }
+            }
+            // Select Kelas
             for (int i = 0; i < cmbKelas.getItemCount(); i++) {
-                Item kelasItem = (Item) cmbKelas.getItemAt(i);
-                if (kelasItem.getDescription().equals(namaKelas)) {
+                Item item = (Item) cmbKelas.getItemAt(i);
+                if (item.getDescription().equals(namaKelas)) {
                     cmbKelas.setSelectedIndex(i);
                     break;
                 }
             }
-            // Select Tahun Ajaran in ComboBox
+            // Select Tahun Ajaran
             for (int i = 0; i < cmbTahunAjaran.getItemCount(); i++) {
-                Item taItem = (Item) cmbTahunAjaran.getItemAt(i);
-                if (taItem.getDescription().equals(namaTahunAjaran)) {
+                Item item = (Item) cmbTahunAjaran.getItemAt(i);
+                if (item.getDescription().equals(namaTahunAjaran)) {
                     cmbTahunAjaran.setSelectedIndex(i);
                     break;
                 }
             }
-            // Select Status in ComboBox
+            // Select Jenis Nilai
             for (int i = 0; i < cmbJenisNilai.getItemCount(); i++) {
-                Item statusItem = (Item) cmbJenisNilai.getItemAt(i);
-                if (statusItem.getDescription().equals(namaStatus)) {
+                Item item = (Item) cmbJenisNilai.getItemAt(i);
+                if (item.getDescription().equals(namaJenisNilai)) {
                     cmbJenisNilai.setSelectedIndex(i);
                     break;
                 }
@@ -351,118 +570,147 @@ public class Nilai extends javax.swing.JFrame {
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        if (selectedKehadiranId == null || selectedKehadiranId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih data kehadiran yang akan diupdate.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedNilaiId == null || selectedNilaiId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data nilai yang akan diupdate.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
+        Item selectedMataPelajaran = (Item) cmbMataPelajaran.getSelectedItem();
         Item selectedKelas = (Item) cmbKelas.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        Item selectedStatus = (Item) cmbJenisNilai.getSelectedItem();
+        Item selectedJenisNilai = (Item) cmbJenisNilai.getSelectedItem();
         java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
         String keterangan = txtKeterangan.getText();
+        String nilaiStr = txtNilai.getText();
 
-        if (selectedSiswa == null || selectedKelas == null || selectedTahunAjaran == null || selectedStatus == null || utilDate == null) {
-            JOptionPane.showMessageDialog(this, "Semua field yang wajib (Siswa, Kelas, Tahun Ajaran, Status, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (selectedSiswa == null || selectedMataPelajaran == null || selectedKelas == null
+                || selectedTahunAjaran == null || selectedJenisNilai == null || utilDate == null || nilaiStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Mata Pelajaran, Kelas, Tahun Ajaran, Jenis Nilai, Nilai, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        float nilai;
+        try {
+            nilai = Float.parseFloat(nilaiStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Nilai harus berupa angka.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
-        String sql = "UPDATE kehadiran SET id_siswa = ?, id_kelas = ?, id_tahun_ajaran = ?, id_status = ?, tanggal = ?, keterangan = ? WHERE id = ?";
+        String sql = "UPDATE nilai SET id_siswa = ?, id_mata_pelajaran = ?, id_kelas = ?, id_tahun_ajaran = ?, id_jenis_nilai = ?, nilai = ?, tanggal_penilaian = ?, keterangan = ? WHERE id = ?";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
-            stat.setInt(2, selectedKelas.getId());
-            stat.setInt(3, selectedTahunAjaran.getId());
-            stat.setInt(4, selectedStatus.getId());
-            stat.setDate(5, sqlDate);
-            stat.setString(6, keterangan.isEmpty() ? null : keterangan);
-            stat.setInt(7, Integer.parseInt(selectedKehadiranId));
+            stat.setInt(2, selectedMataPelajaran.getId());
+            stat.setInt(3, selectedKelas.getId());
+            stat.setInt(4, selectedTahunAjaran.getId());
+            stat.setInt(5, selectedJenisNilai.getId());
+            stat.setFloat(6, nilai);
+            stat.setDate(7, sqlDate);
+            stat.setString(8, keterangan.isEmpty() ? null : keterangan);
+            stat.setInt(9, Integer.parseInt(selectedNilaiId));
 
             int rowsUpdated = stat.executeUpdate();
             if (rowsUpdated > 0) {
-                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil diupdate!");
+                JOptionPane.showMessageDialog(this, "Data nilai berhasil diupdate!");
                 resetUI();
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal mengupdate data. Data tidak ditemukan atau tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal mengupdate data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID Kehadiran tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ID Nilai tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
-        // Assuming 'dashboard' is the name of your main menu or dashboard JFrame class
         new dashboard().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
+        Item selectedMataPelajaran = (Item) cmbMataPelajaran.getSelectedItem();
         Item selectedKelas = (Item) cmbKelas.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        Item selectedStatus = (Item) cmbJenisNilai.getSelectedItem();
+        Item selectedJenisNilai = (Item) cmbJenisNilai.getSelectedItem();
         java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
         String keterangan = txtKeterangan.getText();
+        String nilaiStr = txtNilai.getText();
 
-        if (selectedSiswa == null || selectedKelas == null || selectedTahunAjaran == null || selectedStatus == null || utilDate == null) {
-            JOptionPane.showMessageDialog(this, "Semua field yang wajib (Siswa, Kelas, Tahun Ajaran, Status, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (selectedSiswa == null || selectedMataPelajaran == null || selectedKelas == null
+                || selectedTahunAjaran == null || selectedJenisNilai == null || utilDate == null || nilaiStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Mata Pelajaran, Kelas, Tahun Ajaran, Jenis Nilai, Nilai, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        float nilai;
+        try {
+            nilai = Float.parseFloat(nilaiStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Nilai harus berupa angka.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
-        String sql = "INSERT INTO kehadiran (id_siswa, id_kelas, id_tahun_ajaran, id_status, tanggal, keterangan) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO nilai (id_siswa, id_mata_pelajaran, id_kelas, id_tahun_ajaran, id_jenis_nilai, nilai, tanggal_penilaian, keterangan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
-            stat.setInt(2, selectedKelas.getId());
-            stat.setInt(3, selectedTahunAjaran.getId());
-            stat.setInt(4, selectedStatus.getId());
-            stat.setDate(5, sqlDate);
-            stat.setString(6, keterangan.isEmpty() ? null : keterangan);
+            stat.setInt(2, selectedMataPelajaran.getId());
+            stat.setInt(3, selectedKelas.getId());
+            stat.setInt(4, selectedTahunAjaran.getId());
+            stat.setInt(5, selectedJenisNilai.getId());
+            stat.setFloat(6, nilai);
+            stat.setDate(7, sqlDate);
+            stat.setString(8, keterangan.isEmpty() ? null : keterangan);
 
             int rowsInserted = stat.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil ditambahkan!");
+                JOptionPane.showMessageDialog(this, "Data nilai berhasil ditambahkan!");
                 resetUI();
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        if (selectedKehadiranId == null || selectedKehadiranId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih data kehadiran yang akan dihapus.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedNilaiId == null || selectedNilaiId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data nilai yang akan dihapus.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus data kehadiran untuk: " + lblSelectedNilai.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus data nilai untuk: " + lblSelectedNilai.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
-        String sql = "DELETE FROM kehadiran WHERE id = ?";
+        String sql = "DELETE FROM nilai WHERE id = ?";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
-            stat.setInt(1, Integer.parseInt(selectedKehadiranId));
+            stat.setInt(1, Integer.parseInt(selectedNilaiId));
 
             int rowsDeleted = stat.executeUpdate();
             if (rowsDeleted > 0) {
-                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil dihapus!");
+                JOptionPane.showMessageDialog(this, "Data nilai berhasil dihapus!");
                 resetUI();
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal menghapus data. Data tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menghapus data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            if (e.getSQLState().startsWith("23")) {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data Nilai: Data ini mungkin digunakan di tabel lain. Hapus data terkait terlebih dahulu.", "Error Hapus Data", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID Kehadiran tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ID Nilai tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
@@ -514,11 +762,11 @@ public class Nilai extends javax.swing.JFrame {
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JComboBox<String> cmbJenisNilai;
-    private javax.swing.JComboBox<String> cmbKelas;
-    private javax.swing.JComboBox<String> cmbMataPelajaran;
-    private javax.swing.JComboBox<String> cmbSiswa;
-    private javax.swing.JComboBox<String> cmbTahunAjaran;
+    private javax.swing.JComboBox<Item> cmbJenisNilai;
+    private javax.swing.JComboBox<Item> cmbKelas;
+    private javax.swing.JComboBox<Item> cmbMataPelajaran;
+    private javax.swing.JComboBox<Item> cmbSiswa;
+    private javax.swing.JComboBox<Item> cmbTahunAjaran;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
@@ -530,10 +778,12 @@ public class Nilai extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lblNilai;
     private javax.swing.JLabel lblSelectedNilai;
     private javax.swing.JSpinner spnTanggal;
     private javax.swing.JTable tblNilai;
     private javax.swing.JTextArea txtKeterangan;
+    private javax.swing.JTextField txtNilai;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
