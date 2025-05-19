@@ -1,4 +1,4 @@
--- Original table creations (with collation adjustments for MariaDB compatibility)
+-- Simplified table creations
 CREATE TABLE `data_absensi` (
   `id` varchar(100) NOT NULL,
   `nama` varchar(100) NOT NULL,
@@ -6,7 +6,7 @@ CREATE TABLE `data_absensi` (
   `kelas` varchar(100) NOT NULL, -- This will be kept, new FK 'kelas_id' will be added
   `keterangan` varchar(100) NOT NULL,
   `tanggal` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 CREATE TABLE `data_kelas` (
   `id` varchar(20) NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE `data_kelas` (
   `wali_kelas` varchar(255) NOT NULL, -- This will be kept (name of wali_kelas), new FK 'guru_id_wali_kelas' will be added
   `ketua_kelas` varchar(255) NOT NULL,
   `tahun_ajaran` varchar(25) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci; -- Changed collation
+);
 
 CREATE TABLE `data_nilai` (
   `id` varchar(255) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE `data_nilai` (
   `nilai_uts` float NOT NULL,
   `nilai_uas` float NOT NULL,
   `rata_rata` float NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci; -- Changed collation
+);
 
 CREATE TABLE `data_siswa` (
   `id` int(11) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE `data_siswa` (
   `Nama_Ibu` varchar(250) NOT NULL,
   `NIK_Ibu` varchar(255) NOT NULL,
   `Alamat` varchar(250) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci; -- Kept original as ID is INT
+);
 
 CREATE TABLE `guru` (
   `id` int(11) NOT NULL,
@@ -52,14 +52,14 @@ CREATE TABLE `guru` (
   `telp` varchar(20) NOT NULL,
   `mapel` varchar(255) NOT NULL,
   `wali_kelas` varchar(255) NOT NULL -- This field (likely class name/ID) will be kept
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci; -- Changed collation
+);
 
 CREATE TABLE `pengguna` (
   `id` int(11) NOT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` varchar(25) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci; -- Kept original, not directly involved in new FKs with VARCHAR keys
+);
 
 CREATE TABLE `spp_pembayaran` (
   `id` varchar(255) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE `spp_pembayaran` (
   `jmlbayar` int(11) NOT NULL,
   `bayar` int(11) NOT NULL,
   `tunggakan` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci; -- Kept original, FK to data_siswa.id is INT
+);
 
 -- Add new columns for Foreign Keys
 ALTER TABLE `spp_pembayaran`
