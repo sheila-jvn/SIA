@@ -4,17 +4,171 @@
  */
 package form;
 
+import database.Database;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.KeyEvent;
+
 /**
  *
  * @author erickc
  */
 public class MataPelajaran extends javax.swing.JFrame {
 
+    private Connection conn;
+    private DefaultTableModel tabmode;
+    private String selectedMataPelajaranId;
+
+    // Helper class for JComboBox items
+    private static class Item {
+
+        private int id;
+        private String description;
+
+        public Item(int id, String description) {
+            this.id = id;
+            this.description = description;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return description; // This is what JComboBox displays
+        }
+
+        // Override equals to help JComboBox select the correct item
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            Item item = (Item) obj;
+            return id == item.id && description.equals(item.description);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Integer.hashCode(id);
+            result = 31 * result + description.hashCode();
+            return result;
+        }
+    }
+
     /**
      * Creates new form MataPelajaran
      */
     public MataPelajaran() {
         initComponents();
+        lblSelectedMataPelajaran.setText("-");
+        selectedMataPelajaranId = null;
+        try {
+            conn = Database.getConnection();
+            loadGuruComboBox();
+            loadTingkatComboBox();
+            reset(); // Call reset before loadTable to ensure search field is clear if needed
+            loadTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            // Disable components or close form if connection is critical
+        }
+    }
+
+    private void loadGuruComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM guru ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbGuru.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data guru: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadTingkatComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM tingkat ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbTingkat.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data tingkat: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void reset() {
+        txtNama.setText("");
+        if (cmbGuru.getItemCount() > 0) {
+            cmbGuru.setSelectedIndex(0);
+        }
+        if (cmbTingkat.getItemCount() > 0) {
+            cmbTingkat.setSelectedIndex(0);
+        }
+        txtSearch.setText("");
+        lblSelectedMataPelajaran.setText("-");
+        selectedMataPelajaranId = null;
+    }
+
+    private void loadTable() {
+        Object[] Baris = {"ID", "Nama Mata Pelajaran", "Guru", "Tingkat"};
+        tabmode = new DefaultTableModel(null, Baris);
+        String cariitem = txtSearch.getText();
+
+        try {
+            // Query to join mata_pelajaran with guru and tingkat to get names
+            String sql = "SELECT mp.id, mp.nama AS nama_mapel, g.nama AS nama_guru, t.nama AS nama_tingkat "
+                    + "FROM mata_pelajaran mp "
+                    + "LEFT JOIN guru g ON mp.id_guru = g.id "
+                    + "LEFT JOIN tingkat t ON mp.id_tingkat = t.id "
+                    + "WHERE mp.nama LIKE ? OR g.nama LIKE ? OR t.nama LIKE ? "
+                    + "ORDER BY mp.id ASC";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            String searchTerm = "%" + cariitem + "%";
+            stat.setString(1, searchTerm);
+            stat.setString(2, searchTerm);
+            stat.setString(3, searchTerm);
+            ResultSet hasil = stat.executeQuery();
+
+            while (hasil.next()) {
+                tabmode.addRow(new Object[]{
+                    hasil.getString("id"),
+                    hasil.getString("nama_mapel"),
+                    hasil.getString("nama_guru"), // Can be null if id_guru is null
+                    hasil.getString("nama_tingkat")
+                });
+            }
+            tblMataPelajaran.setModel(tabmode);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Data gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void resetUI() {
+        loadTable();
+        reset();
     }
 
     /**
@@ -124,15 +278,11 @@ public class MataPelajaran extends javax.swing.JFrame {
 
         lblSelectedMataPelajaran.setText("[PLACEHOLDER]");
 
-        cmbGuru.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         jLabel5.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
         jLabel5.setText("Guru");
 
         jLabel6.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
         jLabel6.setText("Tingkat");
-
-        cmbTingkat.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -224,163 +374,116 @@ public class MataPelajaran extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        String nip = txtNip.getText();
-        String nama = txtNama.getText();
-        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
-        String noTelpon = txtNoTelpon.getText();
+        String namaMapel = txtNama.getText();
+        Item selectedGuruItem = (Item) cmbGuru.getSelectedItem();
+        Item selectedTingkatItem = (Item) cmbTingkat.getSelectedItem();
 
-        if (nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama Guru tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (namaMapel.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Mata Pelajaran tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        java.sql.Date sqlTanggalLahir = null;
-        if (utilTanggalLahir != null) {
-            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
+        if (selectedTingkatItem == null) {
+            JOptionPane.showMessageDialog(this, "Tingkat harus dipilih.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-
-        Boolean jenisKelaminDbValue = null;
-        if (radLaki.isSelected()) {
-            jenisKelaminDbValue = true; // Represents 1 for Laki-laki
-        } else if (radPerempuan.isSelected()) {
-            jenisKelaminDbValue = false; // Represents 0 for Perempuan
-        }
+        // Guru can be optional (NULL in DB)
 
         try {
-            String sql = "INSERT INTO guru (nip, nama, tanggal_lahir, jenis_kelamin, no_telpon) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO mata_pelajaran (id_tingkat, id_guru, nama) VALUES (?, ?, ?)";
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            if (nip.isEmpty()) {
-                stat.setNull(1, java.sql.Types.VARCHAR);
+            stat.setInt(1, selectedTingkatItem.getId());
+            if (selectedGuruItem != null) {
+                stat.setInt(2, selectedGuruItem.getId());
             } else {
-                stat.setString(1, nip);
+                stat.setNull(2, java.sql.Types.INTEGER);
             }
-            stat.setString(2, nama);
-
-            if (sqlTanggalLahir == null) {
-                stat.setNull(3, java.sql.Types.DATE);
-            } else {
-                stat.setDate(3, sqlTanggalLahir);
-            }
-
-            if (jenisKelaminDbValue == null) {
-                stat.setNull(4, java.sql.Types.BOOLEAN);
-            } else {
-                stat.setBoolean(4, jenisKelaminDbValue);
-            }
-
-            if (noTelpon.isEmpty()) {
-                stat.setNull(5, java.sql.Types.VARCHAR);
-            } else {
-                stat.setString(5, noTelpon);
-            }
+            stat.setString(3, namaMapel);
 
             int rowsInserted = stat.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(this, "Data Guru berhasil ditambahkan!");
-                loadTable();
-                reset();
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil ditambahkan!");
+                resetUI();
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        if (selectedGuruId == null || selectedGuruId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih guru yang akan diupdate.", "Guru Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedMataPelajaranId == null || selectedMataPelajaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih mata pelajaran yang akan diupdate.", "Mata Pelajaran Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String nip = txtNip.getText();
-        String nama = txtNama.getText();
-        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
-        String noTelpon = txtNoTelpon.getText();
+        String namaMapel = txtNama.getText();
+        Item selectedGuruItem = (Item) cmbGuru.getSelectedItem();
+        Item selectedTingkatItem = (Item) cmbTingkat.getSelectedItem();
 
-        if (nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama Guru tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (namaMapel.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Mata Pelajaran tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
-        java.sql.Date sqlTanggalLahir = null;
-        if (utilTanggalLahir != null) {
-            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
-        }
-
-        Boolean jenisKelaminDbValue = null;
-        if (radLaki.isSelected()) {
-            jenisKelaminDbValue = true; // Represents 1 for Laki-laki
-        } else if (radPerempuan.isSelected()) {
-            jenisKelaminDbValue = false; // Represents 0 for Perempuan
+        if (selectedTingkatItem == null) {
+            JOptionPane.showMessageDialog(this, "Tingkat harus dipilih.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         try {
-            String sql = "UPDATE guru SET nip = ?, nama = ?, tanggal_lahir = ?, jenis_kelamin = ?, no_telpon = ? WHERE id = ?";
+            String sql = "UPDATE mata_pelajaran SET id_tingkat = ?, id_guru = ?, nama = ? WHERE id = ?";
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            if (nip.isEmpty()) {
-                stat.setNull(1, java.sql.Types.VARCHAR);
+            stat.setInt(1, selectedTingkatItem.getId());
+            if (selectedGuruItem != null) {
+                stat.setInt(2, selectedGuruItem.getId());
             } else {
-                stat.setString(1, nip);
+                stat.setNull(2, java.sql.Types.INTEGER);
             }
-            stat.setString(2, nama);
-
-            if (sqlTanggalLahir == null) {
-                stat.setNull(3, java.sql.Types.DATE);
-            } else {
-                stat.setDate(3, sqlTanggalLahir);
-            }
-
-            if (jenisKelaminDbValue == null) {
-                stat.setNull(4, java.sql.Types.BOOLEAN);
-            } else {
-                stat.setBoolean(4, jenisKelaminDbValue);
-            }
-
-            if (noTelpon.isEmpty()) {
-                stat.setNull(5, java.sql.Types.VARCHAR);
-            } else {
-                stat.setString(5, noTelpon);
-            }
-            stat.setString(6, selectedGuruId);
+            stat.setString(3, namaMapel);
+            stat.setString(4, selectedMataPelajaranId);
 
             int rowsUpdated = stat.executeUpdate();
             if (rowsUpdated > 0) {
-                JOptionPane.showMessageDialog(this, "Data Guru berhasil diupdate!");
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil diupdate!");
                 resetUI();
             } else {
-                JOptionPane.showMessageDialog(this, "Gagal mengupdate data guru. Guru tidak ditemukan atau data tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate data. Mata Pelajaran tidak ditemukan atau data tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal mengupdate data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        if (selectedGuruId == null || selectedGuruId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih guru yang akan dihapus.", "Guru Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedMataPelajaranId == null || selectedMataPelajaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih mata pelajaran yang akan dihapus.", "Mata Pelajaran Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus lblSelectedMataPelajaranlectedGuru.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus mata pelajaran: " + lblSelectedMataPelajaran.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
         try {
-            String sql = "DELETE FROM guru WHERE id = ?";
+            String sql = "DELETE FROM mata_pelajaran WHERE id = ?";
             PreparedStatement stat = conn.prepareStatement(sql);
-            stat.setString(1, selectedGuruId);
+            stat.setString(1, selectedMataPelajaranId);
 
             int rowsDeleted = stat.executeUpdate();
             if (rowsDeleted > 0) {
-                JOptionPane.showMessageDialog(this, "Data Guru berhasil dihapus!");
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil dihapus!");
                 resetUI();
             } else {
-                JOptionPane.showMessageDialog(this, "Gagal menghapus data guru. Guru tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data. Mata Pelajaran tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menghapus data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            // Check for foreign key constraint violation (e.g., SQLState "23000")
+            if (e.getSQLState().startsWith("23")) { // General class for integrity constraint violation
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data Mata Pelajaran: Mata pelajaran ini mungkin digunakan di tabel lain (misalnya Nilai). Hapus data terkait terlebih dahulu.", "Error Hapus Data", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
@@ -389,42 +492,55 @@ public class MataPelajaran extends javax.swing.JFrame {
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
-        dashboard Dashboard = new dashboard();
-        Dashboard.setVisible(true);
+        // Assuming 'dashboard' is the name of your main menu or dashboard JFrame class
+        // Replace 'dashboard.class' with your actual dashboard class if different
+        // Example: new MainMenu().setVisible(true);
+        // For now, using a placeholder if 'dashboard' class is not defined or accessible here.
+        // You might need to import 'dashboard' class.
+        // Example:
+        // dashboard mainDashboard = new dashboard();
+        // mainDashboard.setVisible(true);
+        // this.dispose();
+        // Fallback to just disposing if dashboard class is an issue for this context
+        // For the provided structure, it seems 'dashboard' is a known class.
+        // If 'dashboard' is in the same package, no import needed.
+        // If 'dashboard' is in another package, e.g., 'mainmenu.dashboard', then import it.
+        new dashboard().setVisible(true); // Assuming dashboard is a class in the same or accessible package
         this.dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void tblMataPelajaranMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMataPelajaranMouseClicked
         int baris = tblMataPelajaran.getSelectedRow();
         if (baris != -1) {
-            selectedGuruId = tblMataPelajaran.getValueAt(baris, 0).toString();
-            String nip = tblMataPelajaran.getValueAt(baris, 1) != null ? tblMataPelajaran.getValueAt(baris, 1).toString() : "";
-            String nama = tblMataPelajaran.getValueAt(baris, 2).toString(); // Nama is NOT NULL
-            Object tanggalLahirObj = tblMataPelajaran.getValueAt(baris, 3);
-            String jenisKelaminStr = tblMataPelajaran.getValueAt(baris, 4) != null ? tblMataPelajaran.getValueAt(baris, 4).toString() : "";
-            String noTelpon = tblMataPelajaran.getValueAt(baris, 5) != null ? tblMataPelajaran.getValueAt(baris, 5).toString() : "";
+            selectedMataPelajaranId = tblMataPelajaran.getValueAt(baris, 0).toString();
+            String namaMapel = tblMataPelajaran.getValueAt(baris, 1).toString();
+            String namaGuru = tblMataPelajaran.getValueAt(baris, 2) != null ? tblMataPelajaran.getValueAt(baris, 2).toString() : null;
+            String namaTingkat = tblMataPelajaran.getValueAt(baris, 3).toString();
 
-            // txtid.setText(selectedGuruId); // Not directly using txtid for display of ID
-            txtNip.setText(nip);
-            txtNama.setText(nama);
-  lblSelectedMataPelajaranlectedGuru.setText(nama); // Update label with selected guru's name
+            txtNama.setText(namaMapel);
+            lblSelectedMataPelajaran.setText(namaMapel);
 
-            if (tanggalLahirObj instanceof java.util.Date) { // This covers java.sql.Date
-                spnTanggalLahir.setValue(new java.util.Date(((java.util.Date) tanggalLahirObj).getTime()));
+            // Select Guru in ComboBox
+            if (namaGuru != null) {
+                for (int i = 0; i < cmbGuru.getItemCount(); i++) {
+                    Item guruItem = (Item) cmbGuru.getItemAt(i);
+                    if (guruItem.getDescription().equals(namaGuru)) {
+                        cmbGuru.setSelectedIndex(i);
+                        break;
+                    }
+                }
             } else {
-                spnTanggalLahir.setValue(new java.util.Date()); // Default if null or other type
+                cmbGuru.setSelectedItem(null); // Or set to a default "None" item if you add one
             }
 
-            if ("Laki-laki".equalsIgnoreCase(jenisKelaminStr)) {
-                radLaki.setSelected(true);
-            } else if ("Perempuan".equalsIgnoreCase(jenisKelaminStr)) {
-                radPerempuan.setSelected(true);
-            } else {
-                buttonGroup1.clearSelection(); // Clear if no match or null
+            // Select Tingkat in ComboBox
+            for (int i = 0; i < cmbTingkat.getItemCount(); i++) {
+                Item tingkatItem = (Item) cmbTingkat.getItemAt(i);
+                if (tingkatItem.getDescription().equals(namaTingkat)) {
+                    cmbTingkat.setSelectedIndex(i);
+                    break;
+                }
             }
-            txtNoTelpon.setText(noTelpon);
-            // txt_mapel.setText(g); // Field not in guru table schema
-            // txt_waliKelas.setText(h); // Field not in guru table schema
         }
     }//GEN-LAST:event_tblMataPelajaranMouseClicked
 
@@ -480,8 +596,8 @@ public class MataPelajaran extends javax.swing.JFrame {
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JComboBox<String> cmbGuru;
-    private javax.swing.JComboBox<String> cmbTingkat;
+    private javax.swing.JComboBox<Item> cmbGuru;
+    private javax.swing.JComboBox<Item> cmbTingkat;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
