@@ -25,14 +25,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import koneksi.KoneksiDB;
-import javax.swing.ButtonGroup;
 import javax.swing.JSpinner;
-import java.util.Date;
 
 /**
  *
@@ -55,11 +51,12 @@ public class guru extends javax.swing.JFrame {
 
     protected void aktif() {
         txtid.requestFocus();
+        txtid.setEditable(false); // ID is auto-increment, so not user-editable
         tglLahir.setEditor(new JSpinner.DateEditor(tglLahir, "yyyy/MM/dd"));
     }
 
     protected void kosong() {
-        txtid.setText("");
+        txtid.setText(""); // Clear for display, but it's not for insertion
         txt_nip.setText("");
         txt_nama.setText("");
         tglLahir.setValue(new java.util.Date());
@@ -405,7 +402,8 @@ public class guru extends javax.swing.JFrame {
         } else if (rperempuan.isSelected()) {
             jenis = "Perempuan";
         }
-        String sql = "insert into guru (nip, nama, tgl_lahir, jk, telp, mapel, wali_kelas) values (?,?,?,?,?,?,?)";
+        // Explicitly including 'id' and setting it to NULL to trigger auto-increment
+        String sql = "insert into guru (id, nip, nama, tgl_lahir, jk, telp, mapel, wali_kelas) values (?, ?,?,?,?,?,?,?)";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
 
@@ -413,13 +411,14 @@ public class guru extends javax.swing.JFrame {
 
             java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
 
-            stat.setString(1, txt_nip.getText());
-            stat.setString(2, txt_nama.getText());
-            stat.setDate(3, sqlDate); // Use setDate() for the date column
-            stat.setString(4, jenis);
-            stat.setString(5, txt_telp.getText());
-            stat.setString(6, txt_mapel.getText());
-            stat.setString(7, txt_waliKelas.getText());
+            stat.setNull(1, java.sql.Types.INTEGER); // For id, which is auto-increment
+            stat.setString(2, txt_nip.getText());
+            stat.setString(3, txt_nama.getText());
+            stat.setDate(4, sqlDate);
+            stat.setString(5, jenis);
+            stat.setString(6, txt_telp.getText());
+            stat.setString(7, txt_mapel.getText());
+            stat.setString(8, txt_waliKelas.getText());
 
             stat.executeUpdate();
             JOptionPane.showMessageDialog(null, "data berhasil disimpan");
@@ -445,7 +444,7 @@ public class guru extends javax.swing.JFrame {
             java.util.Date utilDate = (java.util.Date) tglLahir.getValue();
 
             java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-            
+
             stat.setString(1, txt_nip.getText());
             stat.setString(2, txt_nama.getText());
             stat.setDate(3, sqlDate);
@@ -550,13 +549,13 @@ public class guru extends javax.swing.JFrame {
         // Otherwise, return the (potentially quote-escaped) data as is
         return escapedData;
     }
-    
+
     private void btnCSVActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCSVActionPerformed
         String defaultFolder = System.getProperty("user.home");
         String filePath = defaultFolder + File.separator + "data_guru_export.csv";
 
         String cariitem = txt_cariData.getText();
-        
+
         String[] headers = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write(String.join(",", headers));
@@ -639,7 +638,7 @@ public class guru extends javax.swing.JFrame {
                 cell.setPhrase(new Phrase(header, headerFont));
                 pdfTable.addCell(cell);
             }
-            pdfTable.setHeaderRows(1); 
+            pdfTable.setHeaderRows(1);
 
             String sql = "SELECT * FROM guru ORDER BY id ASC";
 
