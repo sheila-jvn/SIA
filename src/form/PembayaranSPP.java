@@ -4,9 +4,20 @@
  */
 package form;
 
-import com.lowagie.text.pdf.AcroFields.Item;
+import database.Database;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -14,11 +25,256 @@ import javax.swing.JOptionPane;
  */
 public class PembayaranSPP extends javax.swing.JFrame {
 
+    private Connection conn;
+    private DefaultTableModel tabmode;
+    private String selectedPembayaranSPPId;
+
+    private static final BigDecimal SPP_PER_BULAN = new BigDecimal("650000.00");
+    private static final int TOTAL_MONTHS_IN_YEAR = 12;
+    private final DecimalFormat currencyFormatter = new DecimalFormat("Rp #,##0.00");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+    // Helper class for JComboBox items
+    private static class Item {
+
+        private int id;
+        private String description;
+
+        public Item(int id, String description) {
+            this.id = id;
+            this.description = description;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return description;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            Item item = (Item) obj;
+            return id == item.id && description.equals(item.description);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Integer.hashCode(id);
+            result = 31 * result + description.hashCode();
+            return result;
+        }
+    }
+
     /**
      * Creates new form PembayaranSPP
      */
     public PembayaranSPP() {
         initComponents();
+        lblSelectedNilai1.setText("-"); // Will be used as lblSelectedPembayaranInfo
+        lblSisaBayar.setText(currencyFormatter.format(0));
+        selectedPembayaranSPPId = null;
+        try {
+            conn = Database.getConnection();
+            loadSiswaComboBox();
+            loadTahunAjaranComboBox();
+            loadBulanComboBox();
+            reset();
+            loadTable(); // Load table initially (might be empty or show all)
+            // Add action listeners to recalculate sisa bayar and reload table
+            cmbSiswa.addActionListener(e -> calculateSisaBayarAndLoadTable());
+            cmbTahunAjaran.addActionListener(e -> calculateSisaBayarAndLoadTable());
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadSiswaComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        model.addElement(new Item(0, "-- Pilih Siswa --")); // Default non-selectable item
+        try {
+            String sql = "SELECT id, nama, nisn FROM siswa ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nisn") + " - " + rs.getString("nama")));
+            }
+            cmbSiswa.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data siswa: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadTahunAjaranComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        model.addElement(new Item(0, "-- Pilih Tahun Ajaran --")); // Default non-selectable item
+        try {
+            String sql = "SELECT id, nama FROM tahun_ajaran ORDER BY tahun_mulai DESC, nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbTahunAjaran.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data tahun ajaran: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadBulanComboBox() {
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        model.addElement("-- Pilih Bulan --");
+        String[] namaBulan = {"Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"};
+        for (String bulan : namaBulan) {
+            model.addElement(bulan);
+        }
+        cmbBulan.setModel(model);
+    }
+
+    private void reset() {
+        if (cmbSiswa.getItemCount() > 0) {
+            cmbSiswa.setSelectedIndex(0);
+        }
+        if (cmbTahunAjaran.getItemCount() > 0) {
+            cmbTahunAjaran.setSelectedIndex(0);
+        }
+        if (cmbBulan.getItemCount() > 0) {
+            cmbBulan.setSelectedIndex(0);
+        }
+        txtJumlahBayar.setText("");
+        spnTanggalBayar.setValue(new java.util.Date());
+        txtKeterangan.setText(""); // Keterangan is not saved to DB
+        txtSearch.setText("");
+        lblSelectedNilai1.setText("-"); // Used as lblSelectedPembayaranInfo
+        selectedPembayaranSPPId = null;
+        // lblSisaBayar.setText(currencyFormatter.format(0)); // Reset by calculateSisaBayar
+        calculateSisaBayar(); // Recalculate based on current (likely reset) selections
+    }
+
+    private void loadTable() {
+        Object[] Baris = {"ID", "NISN", "Nama Siswa", "Tahun Ajaran", "Bulan", "Tgl Bayar", "Jumlah Bayar"};
+        tabmode = new DefaultTableModel(null, Baris);
+        tblPembayaranSPP.setModel(tabmode);
+
+        String cariitem = txtSearch.getText();
+        Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
+        Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
+
+        StringBuilder sqlBuilder = new StringBuilder(
+                "SELECT ps.id, s.nisn, s.nama AS nama_siswa, ta.nama AS nama_tahun_ajaran, ps.bulan, ps.tanggal_bayar, ps.jumlah_bayar "
+                + "FROM pembayaran_spp ps "
+                + "JOIN siswa s ON ps.id_siswa = s.id "
+                + "JOIN tahun_ajaran ta ON ps.id_tahun_ajaran = ta.id "
+        );
+
+        boolean whereClauseAdded = false;
+        if (selectedSiswa != null && selectedSiswa.getId() != 0) {
+            sqlBuilder.append(whereClauseAdded ? " AND " : " WHERE ");
+            sqlBuilder.append("ps.id_siswa = ?");
+            whereClauseAdded = true;
+        }
+        if (selectedTahunAjaran != null && selectedTahunAjaran.getId() != 0) {
+            sqlBuilder.append(whereClauseAdded ? " AND " : " WHERE ");
+            sqlBuilder.append("ps.id_tahun_ajaran = ?");
+            whereClauseAdded = true;
+        }
+
+        if (!cariitem.isEmpty()) {
+            sqlBuilder.append(whereClauseAdded ? " AND " : " WHERE ");
+            sqlBuilder.append("(s.nama LIKE ? OR s.nisn LIKE ? OR ta.nama LIKE ? OR ps.bulan LIKE ?)");
+            whereClauseAdded = true;
+        }
+        sqlBuilder.append(" ORDER BY ps.tanggal_bayar DESC, s.nama ASC");
+
+        try {
+            PreparedStatement stat = conn.prepareStatement(sqlBuilder.toString());
+            int paramIndex = 1;
+            if (selectedSiswa != null && selectedSiswa.getId() != 0) {
+                stat.setInt(paramIndex++, selectedSiswa.getId());
+            }
+            if (selectedTahunAjaran != null && selectedTahunAjaran.getId() != 0) {
+                stat.setInt(paramIndex++, selectedTahunAjaran.getId());
+            }
+            if (!cariitem.isEmpty()) {
+                String searchTerm = "%" + cariitem + "%";
+                stat.setString(paramIndex++, searchTerm);
+                stat.setString(paramIndex++, searchTerm);
+                stat.setString(paramIndex++, searchTerm);
+                stat.setString(paramIndex++, searchTerm);
+            }
+
+            ResultSet hasil = stat.executeQuery();
+            while (hasil.next()) {
+                tabmode.addRow(new Object[]{
+                    hasil.getString("id"),
+                    hasil.getString("nisn"),
+                    hasil.getString("nama_siswa"),
+                    hasil.getString("nama_tahun_ajaran"),
+                    hasil.getString("bulan"),
+                    dateFormat.format(hasil.getDate("tanggal_bayar")),
+                    currencyFormatter.format(hasil.getBigDecimal("jumlah_bayar"))
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Data pembayaran SPP gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void calculateSisaBayar() {
+        Item siswaItem = (Item) cmbSiswa.getSelectedItem();
+        Item tahunAjaranItem = (Item) cmbTahunAjaran.getSelectedItem();
+
+        if (siswaItem == null || siswaItem.getId() == 0 || tahunAjaranItem == null || tahunAjaranItem.getId() == 0) {
+            lblSisaBayar.setText(currencyFormatter.format(0));
+            return;
+        }
+
+        int siswaId = siswaItem.getId();
+        int tahunAjaranId = tahunAjaranItem.getId();
+        BigDecimal totalHarusBayar = SPP_PER_BULAN.multiply(new BigDecimal(TOTAL_MONTHS_IN_YEAR));
+        BigDecimal totalSudahBayar = BigDecimal.ZERO;
+
+        String sql = "SELECT SUM(jumlah_bayar) AS total_paid FROM pembayaran_spp WHERE id_siswa = ? AND id_tahun_ajaran = ?";
+        try {
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setInt(1, siswaId);
+            stat.setInt(2, tahunAjaranId);
+            ResultSet rs = stat.executeQuery();
+            if (rs.next()) {
+                BigDecimal paid = rs.getBigDecimal("total_paid");
+                if (paid != null) {
+                    totalSudahBayar = paid;
+                }
+            }
+            BigDecimal sisaBayar = totalHarusBayar.subtract(totalSudahBayar);
+            lblSisaBayar.setText(currencyFormatter.format(sisaBayar));
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menghitung sisa bayar: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            lblSisaBayar.setText("Error");
+        }
+    }
+
+    private void calculateSisaBayarAndLoadTable() {
+        calculateSisaBayar();
+        loadTable();
+    }
+
+    private void resetUI() {
+        reset();
+        loadTable();
+        // calculateSisaBayar is called within reset()
     }
 
     /**
@@ -64,6 +320,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
         jLabel8.setText("SPP Dipilih:");
 
         spnTanggalBayar.setModel(new javax.swing.SpinnerDateModel());
+        spnTanggalBayar.setEditor(new javax.swing.JSpinner.DateEditor(spnTanggalBayar, "dd MMMM yyyy"));
 
         txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
@@ -107,9 +364,9 @@ public class PembayaranSPP extends javax.swing.JFrame {
 
         jLabel6.setText("Keterangan");
 
-        jLabel7.setText("Tanggal");
+        jLabel7.setText("Tanggal Bayar");
 
-        lblSisaBayar.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        lblSisaBayar.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
         lblSisaBayar.setText("[PLACEHOLDER]");
 
         jLabel2.setFont(new java.awt.Font("Noto Sans", 1, 24)); // NOI18N
@@ -151,12 +408,12 @@ public class PembayaranSPP extends javax.swing.JFrame {
             }
         });
 
-        jLabel12.setText("Jumlah");
+        jLabel12.setText("Jumlah Bayar");
 
-        txtJumlahBayar.setToolTipText("");
+        txtJumlahBayar.setToolTipText("Masukkan jumlah pembayaran");
 
-        jLabel10.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
-        jLabel10.setText("Sisa Bayar:");
+        jLabel10.setFont(new java.awt.Font("Noto Sans", 1, 14)); // NOI18N
+        jLabel10.setText("Sisa Bayar (Tahun Ajaran ini):");
 
         lblSelectedNilai1.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
         lblSelectedNilai1.setText("[PLACEHOLDER]");
@@ -194,81 +451,67 @@ public class PembayaranSPP extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(6, 6, 6)
-                                        .addComponent(jLabel9)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel5))
-                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(cmbBulan, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel10)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(lblSisaBayar))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel9)
+                                            .addComponent(jLabel4)
+                                            .addComponent(jLabel12))
+                                        .addGap(22, 22, 22)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(cmbSiswa, 0, 244, Short.MAX_VALUE)
+                                            .addComponent(cmbTahunAjaran, 0, 244, Short.MAX_VALUE)
+                                            .addComponent(txtJumlahBayar))
+                                        .addGap(60, 60, 60)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel5)
+                                            .addComponent(jLabel7)
+                                            .addComponent(jLabel6))
+                                        .addGap(22, 22, 22)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(cmbBulan, 0, 249, Short.MAX_VALUE)
+                                            .addComponent(spnTanggalBayar)
+                                            .addComponent(jScrollPane2)))
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(jLabel8)
-                                        .addGap(263, 263, 263))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(jLabel12)
-                                            .addComponent(jLabel4))
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(txtJumlahBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 118, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel7)
-                                .addGap(21, 21, 21)
-                                .addComponent(spnTanggalBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(22, 22, 22)))))
+                                        .addComponent(lblSelectedNilai1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jLabel10)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(lblSisaBayar)))
+                                .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap(53, Short.MAX_VALUE))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(112, 112, 112)
-                    .addComponent(lblSelectedNilai1)
-                    .addContainerGap(677, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel2)
-                .addGap(3, 3, 3)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblSelectedNilai1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblSisaBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(9, 9, 9)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel9)
-                            .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5)))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(cmbBulan, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(12, 12, 12)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(29, 29, 29)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel12)
-                            .addComponent(txtJumlahBayar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 57, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5)
+                    .addComponent(cmbBulan, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
+                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel7)
-                    .addComponent(spnTanggalBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(37, 37, 37)
+                    .addComponent(spnTanggalBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel12)
+                        .addComponent(txtJumlahBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel6))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(20, 20, 20)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -280,13 +523,8 @@ public class PembayaranSPP extends javax.swing.JFrame {
                     .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 346, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
                 .addContainerGap())
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(87, 87, 87)
-                    .addComponent(lblSelectedNilai1, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(621, Short.MAX_VALUE)))
         );
 
         pack();
@@ -299,131 +537,132 @@ public class PembayaranSPP extends javax.swing.JFrame {
     }//GEN-LAST:event_txtSearchKeyPressed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        if (selectedNilaiId == null || selectedNilaiId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih data nilai yang akan dihapus.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedPembayaranSPPId == null || selectedPembayaranSPPId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data pembayaran SPP yang akan dihapus.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus data nilai untuk: " + lblSisaBayar.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus data pembayaran SPP: " + lblSelectedNilai1.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
-        String sql = "DELETE FROM nilai WHERE id = ?";
+        String sql = "DELETE FROM pembayaran_spp WHERE id = ?";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
-            stat.setInt(1, Integer.parseInt(selectedNilaiId));
+            stat.setInt(1, Integer.parseInt(selectedPembayaranSPPId));
 
             int rowsDeleted = stat.executeUpdate();
             if (rowsDeleted > 0) {
-                JOptionPane.showMessageDialog(this, "Data nilai berhasil dihapus!");
-                resetUI();
+                JOptionPane.showMessageDialog(this, "Data pembayaran SPP berhasil dihapus!");
+                resetUI(); // This will also recalculate sisa bayar
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal menghapus data. Data tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            if (e.getSQLState().startsWith("23")) {
-                JOptionPane.showMessageDialog(this, "Gagal menghapus data Nilai: Data ini mungkin digunakan di tabel lain. Hapus data terkait terlebih dahulu.", "Error Hapus Data", JOptionPane.ERROR_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this, "Gagal menghapus data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(this, "Gagal menghapus data pembayaran SPP: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID Nilai tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ID Pembayaran SPP tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
-        Item selectedMataPelajaran = (Item) cmbMataPelajaran.getSelectedItem();
-        Item selectedKelas = (Item) cmbBulan.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        Item selectedJenisNilai = (Item) cmbJenisNilai.getSelectedItem();
-        java.util.Date utilDate = (java.util.Date) spnTanggalBayar.getValue();
-        String keterangan = txtKeterangan.getText();
-        String nilaiStr = txtNilai.getText();
+        String selectedBulan = (String) cmbBulan.getSelectedItem();
+        java.util.Date utilTanggalBayar = (java.util.Date) spnTanggalBayar.getValue();
+        String strJumlahBayar = txtJumlahBayar.getText();
 
-        if (selectedSiswa == null || selectedMataPelajaran == null || selectedKelas == null
-                || selectedTahunAjaran == null || selectedJenisNilai == null || utilDate == null || nilaiStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Mata Pelajaran, Kelas, Tahun Ajaran, Jenis Nilai, Nilai, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (selectedSiswa == null || selectedSiswa.getId() == 0
+                || selectedTahunAjaran == null || selectedTahunAjaran.getId() == 0
+                || selectedBulan == null || selectedBulan.equals("-- Pilih Bulan --")
+                || utilTanggalBayar == null || strJumlahBayar.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Tahun Ajaran, Bulan, Tanggal Bayar, Jumlah Bayar) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        float nilai;
+        BigDecimal jumlahBayar;
         try {
-            nilai = Float.parseFloat(nilaiStr);
+            jumlahBayar = new BigDecimal(strJumlahBayar.replace(",", "")); // Remove thousand separators if any
+            if (jumlahBayar.compareTo(BigDecimal.ZERO) <= 0) {
+                JOptionPane.showMessageDialog(this, "Jumlah bayar harus lebih besar dari 0.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Nilai harus berupa angka.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Jumlah Bayar harus berupa angka yang valid.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+        // Check for duplicate payment (same student, year, month)
+        try {
+            String checkSql = "SELECT id FROM pembayaran_spp WHERE id_siswa = ? AND id_tahun_ajaran = ? AND bulan = ?";
+            PreparedStatement checkStat = conn.prepareStatement(checkSql);
+            checkStat.setInt(1, selectedSiswa.getId());
+            checkStat.setInt(2, selectedTahunAjaran.getId());
+            checkStat.setString(3, selectedBulan);
+            ResultSet rsCheck = checkStat.executeQuery();
+            if (rsCheck.next()) {
+                JOptionPane.showMessageDialog(this, "Pembayaran untuk siswa ini, tahun ajaran ini, dan bulan ini sudah ada.", "Duplikasi Data", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memeriksa duplikasi data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        String sql = "INSERT INTO nilai (id_siswa, id_mata_pelajaran, id_kelas, id_tahun_ajaran, id_jenis_nilai, nilai, tanggal_penilaian, keterangan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        java.sql.Date sqlTanggalBayar = new java.sql.Date(utilTanggalBayar.getTime());
+
+        String sql = "INSERT INTO pembayaran_spp (id_siswa, id_tahun_ajaran, bulan, tanggal_bayar, jumlah_bayar) VALUES (?, ?, ?, ?, ?)";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
-            stat.setInt(2, selectedMataPelajaran.getId());
-            stat.setInt(3, selectedKelas.getId());
-            stat.setInt(4, selectedTahunAjaran.getId());
-            stat.setInt(5, selectedJenisNilai.getId());
-            stat.setFloat(6, nilai);
-            stat.setDate(7, sqlDate);
-            stat.setString(8, keterangan.isEmpty() ? null : keterangan);
+            stat.setInt(2, selectedTahunAjaran.getId());
+            stat.setString(3, selectedBulan);
+            stat.setDate(4, sqlTanggalBayar);
+            stat.setBigDecimal(5, jumlahBayar);
 
             int rowsInserted = stat.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(this, "Data nilai berhasil ditambahkan!");
-                resetUI();
+                JOptionPane.showMessageDialog(this, "Data pembayaran SPP berhasil ditambahkan!");
+                resetUI(); // This will also recalculate sisa bayar
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal menambahkan data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data pembayaran SPP: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void tblPembayaranSPPMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblPembayaranSPPMouseClicked
         int baris = tblPembayaranSPP.getSelectedRow();
         if (baris != -1) {
-            selectedNilaiId = tblPembayaranSPP.getValueAt(baris, 0).toString();
-            String namaSiswa = tblPembayaranSPP.getValueAt(baris, 1).toString();
-            String namaMataPelajaran = tblPembayaranSPP.getValueAt(baris, 2).toString();
-            String namaKelas = tblPembayaranSPP.getValueAt(baris, 3).toString();
-            String namaTahunAjaran = tblPembayaranSPP.getValueAt(baris, 4).toString();
-            String namaJenisNilai = tblPembayaranSPP.getValueAt(baris, 5).toString();
-            float nilai = Float.parseFloat(tblPembayaranSPP.getValueAt(baris, 6).toString());
-            java.sql.Date sqlDate = (java.sql.Date) tblPembayaranSPP.getValueAt(baris, 7);
-            String keterangan = tblPembayaranSPP.getValueAt(baris, 8) != null ? tblPembayaranSPP.getValueAt(baris, 8).toString() : "";
+            selectedPembayaranSPPId = tabmode.getValueAt(baris, 0).toString();
+            String nisnSiswa = tabmode.getValueAt(baris, 1).toString();
+            String namaSiswa = tabmode.getValueAt(baris, 2).toString();
+            String namaTahunAjaran = tabmode.getValueAt(baris, 3).toString();
+            String namaBulan = tabmode.getValueAt(baris, 4).toString();
+            String strTanggalBayar = tabmode.getValueAt(baris, 5).toString();
+            String strJumlahBayar = tabmode.getValueAt(baris, 6).toString(); // This is formatted currency
 
-            lblSisaBayar.setText(namaSiswa + " - " + namaMataPelajaran + " (" + sqlDate.toString() + ")");
-            txtNilai.setText(String.valueOf(nilai));
-            txtKeterangan.setText(keterangan);
+            lblSelectedNilai1.setText(nisnSiswa + " - " + namaSiswa + " (" + namaBulan + " " + namaTahunAjaran + ")");
 
-            if (sqlDate != null) {
-                spnTanggalBayar.setValue(new java.util.Date(sqlDate.getTime()));
-            } else {
-                spnTanggalBayar.setValue(new java.util.Date());
+            try {
+                // Parse formatted currency string back to number for editing
+                Number parsedJumlah = currencyFormatter.parse(strJumlahBayar);
+                txtJumlahBayar.setText(new BigDecimal(parsedJumlah.toString()).toPlainString());
+            } catch (ParseException e) {
+                txtJumlahBayar.setText("0"); // Fallback
+            }
+
+            try {
+                spnTanggalBayar.setValue(dateFormat.parse(strTanggalBayar));
+            } catch (ParseException e) {
+                spnTanggalBayar.setValue(new java.util.Date()); // Fallback
             }
 
             // Select Siswa
             for (int i = 0; i < cmbSiswa.getItemCount(); i++) {
                 Item item = (Item) cmbSiswa.getItemAt(i);
-                if (item.getDescription().equals(namaSiswa)) {
+                if (item.getDescription().equals(nisnSiswa + " - " + namaSiswa)) {
                     cmbSiswa.setSelectedIndex(i);
-                    break;
-                }
-            }
-            // Select Mata Pelajaran
-            for (int i = 0; i < cmbMataPelajaran.getItemCount(); i++) {
-                Item item = (Item) cmbMataPelajaran.getItemAt(i);
-                if (item.getDescription().equals(namaMataPelajaran)) {
-                    cmbMataPelajaran.setSelectedIndex(i);
-                    break;
-                }
-            }
-            // Select Kelas
-            for (int i = 0; i < cmbBulan.getItemCount(); i++) {
-                Item item = (Item) cmbBulan.getItemAt(i);
-                if (item.getDescription().equals(namaKelas)) {
-                    cmbBulan.setSelectedIndex(i);
                     break;
                 }
             }
@@ -435,14 +674,11 @@ public class PembayaranSPP extends javax.swing.JFrame {
                     break;
                 }
             }
-            // Select Jenis Nilai
-            for (int i = 0; i < cmbJenisNilai.getItemCount(); i++) {
-                Item item = (Item) cmbJenisNilai.getItemAt(i);
-                if (item.getDescription().equals(namaJenisNilai)) {
-                    cmbJenisNilai.setSelectedIndex(i);
-                    break;
-                }
-            }
+            // Select Bulan
+            cmbBulan.setSelectedItem(namaBulan);
+
+            // Trigger sisa bayar calculation for the selected student/year
+            calculateSisaBayar();
         }
     }//GEN-LAST:event_tblPembayaranSPPMouseClicked
 
@@ -460,60 +696,78 @@ public class PembayaranSPP extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        if (selectedNilaiId == null || selectedNilaiId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Silakan pilih data nilai yang akan diupdate.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+        if (selectedPembayaranSPPId == null || selectedPembayaranSPPId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data pembayaran SPP yang akan diupdate.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
-        Item selectedMataPelajaran = (Item) cmbMataPelajaran.getSelectedItem();
-        Item selectedKelas = (Item) cmbBulan.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        Item selectedJenisNilai = (Item) cmbJenisNilai.getSelectedItem();
-        java.util.Date utilDate = (java.util.Date) spnTanggalBayar.getValue();
-        String keterangan = txtKeterangan.getText();
-        String nilaiStr = txtNilai.getText();
+        String selectedBulan = (String) cmbBulan.getSelectedItem();
+        java.util.Date utilTanggalBayar = (java.util.Date) spnTanggalBayar.getValue();
+        String strJumlahBayar = txtJumlahBayar.getText();
 
-        if (selectedSiswa == null || selectedMataPelajaran == null || selectedKelas == null
-                || selectedTahunAjaran == null || selectedJenisNilai == null || utilDate == null || nilaiStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Mata Pelajaran, Kelas, Tahun Ajaran, Jenis Nilai, Nilai, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+        if (selectedSiswa == null || selectedSiswa.getId() == 0
+                || selectedTahunAjaran == null || selectedTahunAjaran.getId() == 0
+                || selectedBulan == null || selectedBulan.equals("-- Pilih Bulan --")
+                || utilTanggalBayar == null || strJumlahBayar.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field (Siswa, Tahun Ajaran, Bulan, Tanggal Bayar, Jumlah Bayar) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        float nilai;
+        BigDecimal jumlahBayar;
         try {
-            nilai = Float.parseFloat(nilaiStr);
+            jumlahBayar = new BigDecimal(strJumlahBayar.replace(",", ""));
+            if (jumlahBayar.compareTo(BigDecimal.ZERO) <= 0) {
+                JOptionPane.showMessageDialog(this, "Jumlah bayar harus lebih besar dari 0.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Nilai harus berupa angka.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Jumlah Bayar harus berupa angka yang valid.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+        // Check for duplicate payment if month/student/year changed
+        try {
+            String checkSql = "SELECT id FROM pembayaran_spp WHERE id_siswa = ? AND id_tahun_ajaran = ? AND bulan = ? AND id != ?";
+            PreparedStatement checkStat = conn.prepareStatement(checkSql);
+            checkStat.setInt(1, selectedSiswa.getId());
+            checkStat.setInt(2, selectedTahunAjaran.getId());
+            checkStat.setString(3, selectedBulan);
+            checkStat.setInt(4, Integer.parseInt(selectedPembayaranSPPId));
+            ResultSet rsCheck = checkStat.executeQuery();
+            if (rsCheck.next()) {
+                JOptionPane.showMessageDialog(this, "Pembayaran untuk siswa ini, tahun ajaran ini, dan bulan ini sudah ada (data lain).", "Duplikasi Data", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memeriksa duplikasi data: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        String sql = "UPDATE nilai SET id_siswa = ?, id_mata_pelajaran = ?, id_kelas = ?, id_tahun_ajaran = ?, id_jenis_nilai = ?, nilai = ?, tanggal_penilaian = ?, keterangan = ? WHERE id = ?";
+        java.sql.Date sqlTanggalBayar = new java.sql.Date(utilTanggalBayar.getTime());
+
+        String sql = "UPDATE pembayaran_spp SET id_siswa = ?, id_tahun_ajaran = ?, bulan = ?, tanggal_bayar = ?, jumlah_bayar = ? WHERE id = ?";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
-            stat.setInt(2, selectedMataPelajaran.getId());
-            stat.setInt(3, selectedKelas.getId());
-            stat.setInt(4, selectedTahunAjaran.getId());
-            stat.setInt(5, selectedJenisNilai.getId());
-            stat.setFloat(6, nilai);
-            stat.setDate(7, sqlDate);
-            stat.setString(8, keterangan.isEmpty() ? null : keterangan);
-            stat.setInt(9, Integer.parseInt(selectedNilaiId));
+            stat.setInt(2, selectedTahunAjaran.getId());
+            stat.setString(3, selectedBulan);
+            stat.setDate(4, sqlTanggalBayar);
+            stat.setBigDecimal(5, jumlahBayar);
+            stat.setInt(6, Integer.parseInt(selectedPembayaranSPPId));
 
             int rowsUpdated = stat.executeUpdate();
             if (rowsUpdated > 0) {
-                JOptionPane.showMessageDialog(this, "Data nilai berhasil diupdate!");
-                resetUI();
+                JOptionPane.showMessageDialog(this, "Data pembayaran SPP berhasil diupdate!");
+                resetUI(); // This will also recalculate sisa bayar
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal mengupdate data. Data tidak ditemukan atau tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal mengupdate data nilai: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data pembayaran SPP: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID Nilai tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "ID Pembayaran SPP tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
@@ -560,8 +814,8 @@ public class PembayaranSPP extends javax.swing.JFrame {
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
     private javax.swing.JComboBox<String> cmbBulan;
-    private javax.swing.JComboBox<String> cmbSiswa;
-    private javax.swing.JComboBox<String> cmbTahunAjaran;
+    private javax.swing.JComboBox<Item> cmbSiswa;
+    private javax.swing.JComboBox<Item> cmbTahunAjaran;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
