@@ -4,17 +4,83 @@
  */
 package form;
 
+import database.Database;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Calendar;
+import java.util.Date;
+import javax.swing.JOptionPane;
+import javax.swing.JSpinner;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author erickc
  */
 public class TahunAjaran extends javax.swing.JFrame {
 
+    private Connection conn;
+    private DefaultTableModel tableMode;
+    private String selectedTahunAjaranId;
+
     /**
      * Creates new form TahunAjaran
      */
     public TahunAjaran() {
         initComponents();
+        lblSelectedTahunAjar.setText("-"); // Set to empty initially
+        // Set spinner to display only year
+        spnTahunMulai.setEditor(new JSpinner.DateEditor(spnTahunMulai, "yyyy"));
+        spnTahunSelesai.setEditor(new JSpinner.DateEditor(spnTahunSelesai, "yyyy"));
+        try {
+            conn = Database.getConnection();
+            loadTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            // Optionally, disable UI components or close the form if connection is critical
+        }
+    }
+
+    private void loadTable() {
+        Object[] columns = {"ID", "Nama", "Tahun Mulai", "Tahun Selesai"};
+        tableMode = new DefaultTableModel(null, columns);
+
+        try {
+            String sql = "SELECT id, nama, tahun_mulai, tahun_selesai FROM tahun_ajaran ORDER BY id ASC";
+            Statement statement = conn.createStatement();
+            ResultSet result = statement.executeQuery(sql);
+
+            while (result.next()) {
+                tableMode.addRow(new Object[]{
+                    result.getString("id"),
+                    result.getString("nama"),
+                    result.getInt("tahun_mulai"),
+                    result.getInt("tahun_selesai")
+                });
+            }
+            tblTahunAjaran.setModel(tableMode);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Data gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void resetFormFields() {
+        txtNama.setText("");
+        // Set spinners to current year
+        Calendar cal = Calendar.getInstance();
+        spnTahunMulai.setValue(cal.getTime());
+        cal.add(Calendar.YEAR, 1); // Default end year to start year + 1
+        spnTahunSelesai.setValue(cal.getTime());
+    }
+
+    private void resetUI() {
+        loadTable(); // Refresh the table
+        resetFormFields(); // Clear input fields
+        lblSelectedTahunAjar.setText("-"); // Reset selected label
+        selectedTahunAjaranId = null; // Clear selected ID
     }
 
     /**
@@ -183,102 +249,135 @@ public class TahunAjaran extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        String username = txtNama.getText();
-        String password = txtPassword.getText(); // In a real application, hash the password
+        String nama = txtNama.getText();
+        Date tahunMulaiDate = (Date) spnTahunMulai.getValue();
+        Date tahunSelesaiDate = (Date) spnTahunSelesai.getValue();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Username and Password cannot be empty", "Validation Error", JOptionPane.ERROR_MESSAGE);
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Tahun Ajaran cannot be empty", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(tahunMulaiDate);
+        int tahunMulai = cal.get(Calendar.YEAR);
+        cal.setTime(tahunSelesaiDate);
+        int tahunSelesai = cal.get(Calendar.YEAR);
+
+        if (tahunMulai >= tahunSelesai) {
+            JOptionPane.showMessageDialog(this, "Tahun Mulai must be less than Tahun Selesai", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            String sql = "INSERT INTO user (username, password) VALUES (?, ?)";
+            String sql = "INSERT INTO tahun_ajaran (nama, tahun_mulai, tahun_selesai) VALUES (?, ?, ?)";
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, username);
-            statement.setString(2, password);
+            statement.setString(1, nama);
+            statement.setInt(2, tahunMulai);
+            statement.setInt(3, tahunSelesai);
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(this, "User added successfully!");
-                loadTable(); // Refresh the table
-                resetFormFields(); // Clear input fields
+                JOptionPane.showMessageDialog(this, "Tahun Ajaran added successfully!");
+                resetUI(); // Refresh the table and clear input fields
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to add user: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Failed to add Tahun Ajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        if (selectedUserId == null || selectedUserId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please select a user to update.", "No User Selected", JOptionPane.WARNING_MESSAGE);
+        if (selectedTahunAjaranId == null || selectedTahunAjaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Tahun Ajaran to update.", "No Tahun Ajaran Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String username = txtNama.getText();
-        String password = txtPassword.getText(); // In a real application, hash the password
+        String nama = txtNama.getText();
+        Date tahunMulaiDate = (Date) spnTahunMulai.getValue();
+        Date tahunSelesaiDate = (Date) spnTahunSelesai.getValue();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Username and Password cannot be empty", "Validation Error", JOptionPane.ERROR_MESSAGE);
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Tahun Ajaran cannot be empty", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(tahunMulaiDate);
+        int tahunMulai = cal.get(Calendar.YEAR);
+        cal.setTime(tahunSelesaiDate);
+        int tahunSelesai = cal.get(Calendar.YEAR);
+
+        if (tahunMulai >= tahunSelesai) {
+            JOptionPane.showMessageDialog(this, "Tahun Mulai must be less than Tahun Selesai", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         try {
-            String sql = "UPDATE user SET username = ?, password = ? WHERE id = ?";
+            String sql = "UPDATE tahun_ajaran SET nama = ?, tahun_mulai = ?, tahun_selesai = ? WHERE id = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, username);
-            statement.setString(2, password);
-            statement.setString(3, selectedUserId);
+            statement.setString(1, nama);
+            statement.setInt(2, tahunMulai);
+            statement.setInt(3, tahunSelesai);
+            statement.setString(4, selectedTahunAjaranId);
 
             int rowsUpdated = statement.executeUpdate();
             if (rowsUpdated > 0) {
-                JOptionPane.showMessageDialog(this, "User updated successfully!");
+                JOptionPane.showMessageDialog(this, "Tahun Ajaran updated successfully!");
                 resetUI();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to update user. User not found or data unchanged.", "Update Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to update Tahun Ajaran. Data not found or unchanged.", "Update Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to update user: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Failed to update Tahun Ajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        if (selectedUserId == null || selectedUserId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please select a user to delete.", "No User Selected", JOptionPane.WARNING_MESSAGE);
+        if (selectedTahunAjaranId == null || selectedTahunAjaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Tahun Ajaran to delete.", "No Tahun Ajaran Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete user: " + lblSelectedTahunAjar.getText() + "?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete Tahun Ajaran: " + lblSelectedTahunAjar.getText() + "?", "Confirm Deletion", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
         try {
-            String sql = "DELETE FROM user WHERE id = ?";
+            String sql = "DELETE FROM tahun_ajaran WHERE id = ?";
             PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, selectedUserId);
+            statement.setString(1, selectedTahunAjaranId);
 
             int rowsDeleted = statement.executeUpdate();
             if (rowsDeleted > 0) {
-                JOptionPane.showMessageDialog(this, "User deleted successfully!");
+                JOptionPane.showMessageDialog(this, "Tahun Ajaran deleted successfully!");
                 resetUI();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to delete user. User not found.", "Delete Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Failed to delete Tahun Ajaran. Data not found.", "Delete Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to delete user: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Failed to delete Tahun Ajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void tblTahunAjaranMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblTahunAjaranMouseClicked
         int baris = tblTahunAjaran.getSelectedRow();
         if (baris != -1) {
-            selectedUserId = tblTahunAjaran.getValueAt(baris, 0).toString();
-            String username = tblTahunAjaran.getValueAt(baris, 1).toString();
-            String password = tblTahunAjaran.getValueAt(baris, 2).toString(); // Consider security implications
+            selectedTahunAjaranId = tblTahunAjaran.getValueAt(baris, 0).toString();
+            String nama = tblTahunAjaran.getValueAt(baris, 1).toString();
+            int tahunMulai = (int) tblTahunAjaran.getValueAt(baris, 2);
+            int tahunSelesai = (int) tblTahunAjaran.getValueAt(baris, 3);
 
-            txtNama.setText(username);
-            txtPassword.setText(password);
-            lblSelectedTahunAjar.setText(username);
+            txtNama.setText(nama);
+
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.YEAR, tahunMulai);
+            spnTahunMulai.setValue(cal.getTime());
+
+            cal.set(Calendar.YEAR, tahunSelesai);
+            spnTahunSelesai.setValue(cal.getTime());
+
+            lblSelectedTahunAjar.setText(nama + " (" + tahunMulai + "/" + tahunSelesai + ")");
         }
     }//GEN-LAST:event_tblTahunAjaranMouseClicked
 
