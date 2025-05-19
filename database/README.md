@@ -39,11 +39,8 @@ The database is designed to manage information for an academic institution, cove
 
 5.  **Primary and Unique Keys:**
 
-    - Most tables use a surrogate `id` column as their primary key.
+    - All tables use a surrogate `id` column (defined as `INT AUTO_INCREMENT`) as their primary key.
     - The `pengguna` table additionally has a `UNIQUE` constraint on the `username` column, ensuring no two users can have the same username.
-
-6.  **Auto Increment Starting Values:**
-    - The `AUTO_INCREMENT` values for `data_siswa`, `guru`, and `pengguna` tables are explicitly set. This usually indicates that either some data was pre-existing, or there's a desire to start numbering from a specific point (e.g., to avoid conflicts if migrating from another system).
 
 ## Core Tables:
 
