@@ -4,11 +4,16 @@
  */
 package form;
 
-import java.sql.*;
+import database.Database;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
-import koneksi.KoneksiDB;
 import javax.swing.JSpinner;
 
 /**
@@ -17,58 +22,200 @@ import javax.swing.JSpinner;
  */
 public class Kehadiran extends javax.swing.JFrame {
 
-    private Connection conn = new KoneksiDB().koneksi();
+    private Connection conn;
     private DefaultTableModel tabmode;
+    private String selectedKehadiranId;
+
+    // Helper class for JComboBox items
+    private static class Item {
+
+        private int id;
+        private String description;
+
+        public Item(int id, String description) {
+            this.id = id;
+            this.description = description;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String toString() {
+            return description; // This is what JComboBox displays
+        }
+
+        // Override equals to help JComboBox select the correct item
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            Item item = (Item) obj;
+            return id == item.id && description.equals(item.description);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Integer.hashCode(id);
+            result = 31 * result + description.hashCode();
+            return result;
+        }
+    }
 
     /**
      * Creates new form data_absensi
      */
     public Kehadiran() {
         initComponents();
-        kosong();
-        aktif();
-        datatable();
+        lblSelectedAbsensi.setText("-");
+        selectedKehadiranId = null;
+        spnTanggal.setEditor(new JSpinner.DateEditor(spnTanggal, "yyyy-MM-dd")); // Set date format
+
+        try {
+            conn = Database.getConnection();
+            loadSiswaComboBox();
+            loadKelasComboBox();
+            loadTahunAjaranComboBox();
+            loadStatusComboBox();
+            resetFormFields();
+            loadTable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            // Disable components or close form if connection is critical
+        }
     }
 
-    protected void aktif() {
-        txtid.requestFocus();
-        spnTanggal.setEditor(new JSpinner.DateEditor(spnTanggal, "yyyy/MM/dd"));
+    private void loadSiswaComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM siswa ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbSiswa.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data siswa: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
-    protected void kosong() {
-        txtid.setText("");
-        txtnama.setText("");
-        txtnis.setText("");
+    private void loadKelasComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            // Assuming kelas has a 'nama' field for display
+            String sql = "SELECT id, nama FROM kelas ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbKelas.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data kelas: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadTahunAjaranComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM tahun_ajaran ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbTahunAjaran.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data tahun ajaran: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadStatusComboBox() {
+        DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
+        try {
+            String sql = "SELECT id, nama FROM kehadiran_status ORDER BY nama ASC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                model.addElement(new Item(rs.getInt("id"), rs.getString("nama")));
+            }
+            cmbStatus.setModel(model);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data status kehadiran: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void resetFormFields() {
+        if (cmbSiswa.getItemCount() > 0) {
+            cmbSiswa.setSelectedIndex(0);
+        }
         if (cmbKelas.getItemCount() > 0) {
             cmbKelas.setSelectedIndex(0);
         }
-        if (comboKet.getItemCount() > 0) {
-            comboKet.setSelectedIndex(0);
+        if (cmbTahunAjaran.getItemCount() > 0) {
+            cmbTahunAjaran.setSelectedIndex(0);
         }
+        if (cmbStatus.getItemCount() > 0) {
+            cmbStatus.setSelectedIndex(0);
+        }
+        txtKeterangan.setText("");
         spnTanggal.setValue(new java.util.Date());
+        txtSearch.setText("");
+        lblSelectedAbsensi.setText("-");
+        selectedKehadiranId = null;
     }
 
-    protected void datatable() {
-        Object[] Baris = {"ID", "Nama", "NIS", "Kelas", "Keterangan", "Tanggal"};
+    private void resetUI() {
+        loadTable();
+        resetFormFields();
+    }
+
+    protected void loadTable() {
+        Object[] Baris = {"ID", "Siswa", "Kelas", "Tahun Ajaran", "Status", "Tanggal", "Keterangan"};
         tabmode = new DefaultTableModel(null, Baris);
         String cariitem = txtSearch.getText();
 
         try {
-            String sql = "Select * FROM data_absensi where id like '%" + cariitem + "%' or nama like '%" + cariitem + "%' order by id asc";
-            Statement stat = conn.createStatement();
-            ResultSet hasil = stat.executeQuery(sql);
+            String sql = "SELECT k.id, s.nama AS nama_siswa, kl.nama AS nama_kelas, ta.nama AS nama_tahun_ajaran, ks.nama AS nama_status, k.tanggal, k.keterangan "
+                    + "FROM kehadiran k "
+                    + "JOIN siswa s ON k.id_siswa = s.id "
+                    + "JOIN kelas kl ON k.id_kelas = kl.id "
+                    + "JOIN tahun_ajaran ta ON k.id_tahun_ajaran = ta.id "
+                    + "JOIN kehadiran_status ks ON k.id_status = ks.id "
+                    + "WHERE s.nama LIKE ? OR kl.nama LIKE ? OR ta.nama LIKE ? OR ks.nama LIKE ? "
+                    + "ORDER BY k.tanggal DESC, s.nama ASC";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            String searchTerm = "%" + cariitem + "%";
+            stat.setString(1, searchTerm);
+            stat.setString(2, searchTerm);
+            stat.setString(3, searchTerm);
+            stat.setString(4, searchTerm);
+            ResultSet hasil = stat.executeQuery();
+
             while (hasil.next()) {
                 tabmode.addRow(new Object[]{
-                    hasil.getString(1),
-                    hasil.getString(2),
-                    hasil.getString(3),
-                    hasil.getString(4),
-                    hasil.getString(5),
-                    hasil.getDate(6),});
+                    hasil.getString("id"),
+                    hasil.getString("nama_siswa"),
+                    hasil.getString("nama_kelas"),
+                    hasil.getString("nama_tahun_ajaran"),
+                    hasil.getString("nama_status"),
+                    hasil.getDate("tanggal"),
+                    hasil.getString("keterangan")
+                });
             }
             tblKehadiran.setModel(tabmode);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "data gagal dipanggil" + e);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Data gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -319,132 +466,188 @@ public class Kehadiran extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        String sql = "insert into data_absensi (id, nama, nis, kelas, keterangan, tanggal) values (?,?,?,?,?,?)";
+        Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
+        Item selectedKelas = (Item) cmbKelas.getSelectedItem();
+        Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
+        Item selectedStatus = (Item) cmbStatus.getSelectedItem();
+        java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
+        String keterangan = txtKeterangan.getText();
+
+        if (selectedSiswa == null || selectedKelas == null || selectedTahunAjaran == null || selectedStatus == null || utilDate == null) {
+            JOptionPane.showMessageDialog(this, "Semua field yang wajib (Siswa, Kelas, Tahun Ajaran, Status, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+        String sql = "INSERT INTO kehadiran (id_siswa, id_kelas, id_tahun_ajaran, id_status, tanggal, keterangan) VALUES (?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setInt(1, selectedSiswa.getId());
+            stat.setInt(2, selectedKelas.getId());
+            stat.setInt(3, selectedTahunAjaran.getId());
+            stat.setInt(4, selectedStatus.getId());
+            stat.setDate(5, sqlDate);
+            stat.setString(6, keterangan.isEmpty() ? null : keterangan);
 
-            java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
-
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
-            stat.setString(1, txtid.getText());
-            stat.setString(2, txtnama.getText());
-            stat.setString(3, txtnis.getText());
-            stat.setString(4, cmbKelas.getSelectedItem().toString());
-            stat.setString(5, comboKet.getSelectedItem().toString());
-            stat.setDate(6, sqlDate);
-
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil disimpan");
-            kosong();
-            txtid.requestFocus();
+            int rowsInserted = stat.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil ditambahkan!");
+                resetUI();
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal disimpan " + e);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
-        datatable();
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        try {
-            String sql = "update data_absensi set id=?,nama=?,nis=?,kelas=?,keterangan=?,tanggal=? where id='" + txtid.getText() + "'";
-            PreparedStatement stat = conn.prepareStatement(sql);
-
-            java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
-
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
-
-            stat.setString(1, txtid.getText());
-            stat.setString(2, txtnama.getText());
-            stat.setString(3, txtnis.getText());
-            stat.setString(4, cmbKelas.getSelectedItem().toString());
-            stat.setString(5, comboKet.getSelectedItem().toString());
-            stat.setDate(6, sqlDate);
-
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil diubah");
-            kosong();
-            txtid.requestFocus();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal diubah" + e);
+        if (selectedKehadiranId == null || selectedKehadiranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data kehadiran yang akan diupdate.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-        datatable();
+
+        Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
+        Item selectedKelas = (Item) cmbKelas.getSelectedItem();
+        Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
+        Item selectedStatus = (Item) cmbStatus.getSelectedItem();
+        java.util.Date utilDate = (java.util.Date) spnTanggal.getValue();
+        String keterangan = txtKeterangan.getText();
+
+        if (selectedSiswa == null || selectedKelas == null || selectedTahunAjaran == null || selectedStatus == null || utilDate == null) {
+            JOptionPane.showMessageDialog(this, "Semua field yang wajib (Siswa, Kelas, Tahun Ajaran, Status, Tanggal) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+
+        String sql = "UPDATE kehadiran SET id_siswa = ?, id_kelas = ?, id_tahun_ajaran = ?, id_status = ?, tanggal = ?, keterangan = ? WHERE id = ?";
+        try {
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setInt(1, selectedSiswa.getId());
+            stat.setInt(2, selectedKelas.getId());
+            stat.setInt(3, selectedTahunAjaran.getId());
+            stat.setInt(4, selectedStatus.getId());
+            stat.setDate(5, sqlDate);
+            stat.setString(6, keterangan.isEmpty() ? null : keterangan);
+            stat.setInt(7, Integer.parseInt(selectedKehadiranId));
+
+            int rowsUpdated = stat.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil diupdate!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate data. Data tidak ditemukan atau tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID Kehadiran tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        int ok = JOptionPane.showConfirmDialog(null, "hapus", "konfirmasi dialog", JOptionPane.YES_NO_OPTION);
-        if (ok == 0) {
-            String sql = "delete from data_absensi where id = '" + txtid.getText() + "'";
-            try {
-                PreparedStatement stat = conn.prepareStatement(sql);
-                stat.executeUpdate();
-                JOptionPane.showMessageDialog(null, "data berhasil dihapus");
-                kosong();
-                txtid.requestFocus();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "data gagal dihapus" + e);
+        if (selectedKehadiranId == null || selectedKehadiranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih data kehadiran yang akan dihapus.", "Data Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus data kehadiran untuk: " + lblSelectedAbsensi.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        String sql = "DELETE FROM kehadiran WHERE id = ?";
+        try {
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setInt(1, Integer.parseInt(selectedKehadiranId));
+
+            int rowsDeleted = stat.executeUpdate();
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(this, "Data kehadiran berhasil dihapus!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data. Data tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
-            datatable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menghapus data kehadiran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID Kehadiran tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
-        kosong();
-        datatable();
+        resetUI();
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
-        dashboard Dashboard = new dashboard();
-        Dashboard.setVisible(true);
+        // Assuming 'dashboard' is the name of your main menu or dashboard JFrame class
+        new dashboard().setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        datatable();
+        loadTable();
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void txtSearchKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            datatable();
+            loadTable();
         }
     }//GEN-LAST:event_txtSearchKeyPressed
 
     private void tblKehadiranMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblKehadiranMouseClicked
-        int bar = tblKehadiran.getSelectedRow();
-        String a = tabmode.getValueAt(bar, 0).toString();
-        String b = tabmode.getValueAt(bar, 1).toString();
-        String c = tabmode.getValueAt(bar, 2).toString();
-        String d = tabmode.getValueAt(bar, 3).toString();
-        String e = tabmode.getValueAt(bar, 4).toString();
-        Object fObj = tabmode.getValueAt(bar, 5);
+        int baris = tblKehadiran.getSelectedRow();
+        if (baris != -1) {
+            selectedKehadiranId = tblKehadiran.getValueAt(baris, 0).toString();
+            String namaSiswa = tblKehadiran.getValueAt(baris, 1).toString();
+            String namaKelas = tblKehadiran.getValueAt(baris, 2).toString();
+            String namaTahunAjaran = tblKehadiran.getValueAt(baris, 3).toString();
+            String namaStatus = tblKehadiran.getValueAt(baris, 4).toString();
+            java.sql.Date sqlDate = (java.sql.Date) tblKehadiran.getValueAt(baris, 5);
+            String keterangan = tblKehadiran.getValueAt(baris, 6) != null ? tblKehadiran.getValueAt(baris, 6).toString() : "";
 
-        txtid.setText(a);
-        txtnama.setText(b);
-        txtnis.setText(c);
-        cmbKelas.setSelectedItem(d);
-        comboKet.setSelectedItem(e);
-        if (fObj instanceof java.sql.Date) {
-            java.sql.Date sqlDate = (java.sql.Date) fObj;
-            spnTanggal.setValue(new java.util.Date(sqlDate.getTime()));
-        } else if (fObj instanceof java.util.Date) {
-            spnTanggal.setValue((java.util.Date) fObj);
-        } else {
-            spnTanggal.setValue(new java.util.Date());
+            lblSelectedAbsensi.setText(namaSiswa + " (" + sqlDate.toString() + ")");
+            txtKeterangan.setText(keterangan);
+            if (sqlDate != null) {
+                spnTanggal.setValue(new java.util.Date(sqlDate.getTime()));
+            } else {
+                spnTanggal.setValue(new java.util.Date());
+            }
+
+            // Select Siswa in ComboBox
+            for (int i = 0; i < cmbSiswa.getItemCount(); i++) {
+                Item siswaItem = (Item) cmbSiswa.getItemAt(i);
+                if (siswaItem.getDescription().equals(namaSiswa)) {
+                    cmbSiswa.setSelectedIndex(i);
+                    break;
+                }
+            }
+            // Select Kelas in ComboBox
+            for (int i = 0; i < cmbKelas.getItemCount(); i++) {
+                Item kelasItem = (Item) cmbKelas.getItemAt(i);
+                if (kelasItem.getDescription().equals(namaKelas)) {
+                    cmbKelas.setSelectedIndex(i);
+                    break;
+                }
+            }
+            // Select Tahun Ajaran in ComboBox
+            for (int i = 0; i < cmbTahunAjaran.getItemCount(); i++) {
+                Item taItem = (Item) cmbTahunAjaran.getItemAt(i);
+                if (taItem.getDescription().equals(namaTahunAjaran)) {
+                    cmbTahunAjaran.setSelectedIndex(i);
+                    break;
+                }
+            }
+            // Select Status in ComboBox
+            for (int i = 0; i < cmbStatus.getItemCount(); i++) {
+                Item statusItem = (Item) cmbStatus.getItemAt(i);
+                if (statusItem.getDescription().equals(namaStatus)) {
+                    cmbStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
         }
     }//GEN-LAST:event_tblKehadiranMouseClicked
-
-    private String escapeCsv(String data) {
-        if (data == null) {
-            return "\"\""; // Represent null as an empty quoted string
-        }
-        // Escape double quotes by doubling them: " -> ""
-        String escapedData = data.replace("\"", "\"\"");
-        // If data contains comma, double quote, or newline, enclose in double quotes
-        if (data.contains(",") || data.contains("\"") || data.contains("\n") || data.contains("\r")) {
-            return "\"" + escapedData + "\"";
-        }
-        // Otherwise, return the (potentially quote-escaped) data as is
-        return escapedData;
-    }
 
     /**
      * @param args the command line arguments
@@ -489,10 +692,10 @@ public class Kehadiran extends javax.swing.JFrame {
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JComboBox<String> cmbKelas;
-    private javax.swing.JComboBox<String> cmbSiswa;
-    private javax.swing.JComboBox<String> cmbStatus;
-    private javax.swing.JComboBox<String> cmbTahunAjaran;
+    private javax.swing.JComboBox<Item> cmbKelas;
+    private javax.swing.JComboBox<Item> cmbSiswa;
+    private javax.swing.JComboBox<Item> cmbStatus;
+    private javax.swing.JComboBox<Item> cmbTahunAjaran;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
