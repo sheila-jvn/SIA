@@ -4,6 +4,10 @@
  */
 package form;
 
+import com.lowagie.text.pdf.AcroFields.Item;
+import java.awt.event.KeyEvent;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author erickc
@@ -31,7 +35,7 @@ public class Nilai extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        tblKehadiran = new javax.swing.JTable();
+        tblNilai = new javax.swing.JTable();
         jLabel5 = new javax.swing.JLabel();
         btnSearch = new javax.swing.JButton();
         btnReset = new javax.swing.JButton();
@@ -63,7 +67,7 @@ public class Nilai extends javax.swing.JFrame {
 
         jLabel6.setText("Keterangan");
 
-        tblKehadiran.setModel(new javax.swing.table.DefaultTableModel(
+        tblNilai.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -74,12 +78,12 @@ public class Nilai extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        tblKehadiran.addMouseListener(new java.awt.event.MouseAdapter() {
+        tblNilai.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tblKehadiranMouseClicked(evt);
+                tblNilaiMouseClicked(evt);
             }
         });
-        jScrollPane1.setViewportView(tblKehadiran);
+        jScrollPane1.setViewportView(tblNilai);
 
         jLabel5.setText("Kelas");
 
@@ -284,16 +288,16 @@ public class Nilai extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void tblKehadiranMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblKehadiranMouseClicked
-        int baris = tblKehadiran.getSelectedRow();
+    private void tblNilaiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblNilaiMouseClicked
+        int baris = tblNilai.getSelectedRow();
         if (baris != -1) {
-            selectedKehadiranId = tblKehadiran.getValueAt(baris, 0).toString();
-            String namaSiswa = tblKehadiran.getValueAt(baris, 1).toString();
-            String namaKelas = tblKehadiran.getValueAt(baris, 2).toString();
-            String namaTahunAjaran = tblKehadiran.getValueAt(baris, 3).toString();
-            String namaStatus = tblKehadiran.getValueAt(baris, 4).toString();
-            java.sql.Date sqlDate = (java.sql.Date) tblKehadiran.getValueAt(baris, 5);
-            String keterangan = tblKehadiran.getValueAt(baris, 6) != null ? tblKehadiran.getValueAt(baris, 6).toString() : "";
+            selectedKehadiranId = tblNilai.getValueAt(baris, 0).toString();
+            String namaSiswa = tblNilai.getValueAt(baris, 1).toString();
+            String namaKelas = tblNilai.getValueAt(baris, 2).toString();
+            String namaTahunAjaran = tblNilai.getValueAt(baris, 3).toString();
+            String namaStatus = tblNilai.getValueAt(baris, 4).toString();
+            java.sql.Date sqlDate = (java.sql.Date) tblNilai.getValueAt(baris, 5);
+            String keterangan = tblNilai.getValueAt(baris, 6) != null ? tblNilai.getValueAt(baris, 6).toString() : "";
 
             lblSelectedNilai.setText(namaSiswa + " (" + sqlDate.toString() + ")");
             txtKeterangan.setText(keterangan);
@@ -336,7 +340,7 @@ public class Nilai extends javax.swing.JFrame {
                 }
             }
         }
-    }//GEN-LAST:event_tblKehadiranMouseClicked
+    }//GEN-LAST:event_tblNilaiMouseClicked
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         loadTable();
@@ -528,7 +532,7 @@ public class Nilai extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblSelectedNilai;
     private javax.swing.JSpinner spnTanggal;
-    private javax.swing.JTable tblKehadiran;
+    private javax.swing.JTable tblNilai;
     private javax.swing.JTextArea txtKeterangan;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
