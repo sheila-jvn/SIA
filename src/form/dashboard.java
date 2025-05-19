@@ -154,7 +154,7 @@ public class dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_btnMenuTransaksiActionPerformed
 
     private void btnMenuGuruActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuGuruActionPerformed
-        guru formGuru = new guru();
+        Guru formGuru = new Guru();
         formGuru.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuGuruActionPerformed
