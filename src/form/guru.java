@@ -495,20 +495,6 @@ public class guru extends javax.swing.JFrame {
         txt_waliKelas.setText(h);
     }//GEN-LAST:event_tblGuruMouseClicked
 
-    private String escapeCsv(String data) {
-        if (data == null) {
-            return "\"\""; // Represent null as an empty quoted string
-        }
-        // Escape double quotes by doubling them: " -> ""
-        String escapedData = data.replace("\"", "\"\"");
-        // If data contains comma, double quote, or newline, enclose in double quotes
-        if (data.contains(",") || data.contains("\"") || data.contains("\n") || data.contains("\r")) {
-            return "\"" + escapedData + "\"";
-        }
-        // Otherwise, return the (potentially quote-escaped) data as is
-        return escapedData;
-    }
-
     /**
      * @param args the command line arguments
      */
