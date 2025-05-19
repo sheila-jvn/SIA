@@ -26,21 +26,392 @@ public class Kelas extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtNama = new javax.swing.JTextField();
+        txtSearch = new javax.swing.JTextField();
+        jLabel2 = new javax.swing.JLabel();
+        btnSearch = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        lblSelectedKelas = new javax.swing.JLabel();
+        btnCreate = new javax.swing.JButton();
+        cmbGuru = new javax.swing.JComboBox<>();
+        btnUpdate = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        btnDelete = new javax.swing.JButton();
+        cmbTingkat = new javax.swing.JComboBox<>();
+        btnReset = new javax.swing.JButton();
+        btnExit = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblKelas = new javax.swing.JTable();
+        cmbTahunAjaran = new javax.swing.JComboBox<>();
+        jLabel7 = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtSearchKeyPressed(evt);
+            }
+        });
+
+        jLabel2.setFont(new java.awt.Font("Noto Sans", 1, 24)); // NOI18N
+        jLabel2.setText("Form Kelas");
+
+        btnSearch.setText("CARI");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        jLabel1.setText("Kelas dipilih:");
+
+        lblSelectedKelas.setText("[PLACEHOLDER]");
+
+        btnCreate.setText("SIMPAN");
+        btnCreate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCreateActionPerformed(evt);
+            }
+        });
+
+        btnUpdate.setText("UBAH");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        jLabel5.setText("Guru");
+
+        jLabel4.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        jLabel4.setText("Nama");
+
+        jLabel6.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        jLabel6.setText("Tingkat");
+
+        btnDelete.setText("HAPUS");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
+
+        btnReset.setText("BATAL");
+        btnReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResetActionPerformed(evt);
+            }
+        });
+
+        btnExit.setText("KELUAR");
+        btnExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExitActionPerformed(evt);
+            }
+        });
+
+        tblKelas.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        tblKelas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblKelasMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblKelas);
+
+        jLabel7.setFont(new java.awt.Font("Noto Sans", 0, 14)); // NOI18N
+        jLabel7.setText("Tahun Ajaran");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblSelectedKelas))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(120, 120, 120)
+                        .addComponent(btnCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(46, 46, 46)
+                        .addComponent(btnReset, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(45, 45, 45)
+                        .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(17, 17, 17)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 876, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(308, 308, 308)
+                        .addComponent(jLabel2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(21, 21, 21)
+                                .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel4)
+                                .addGap(34, 34, 34)
+                                .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel7))
+                                .addGap(34, 34, 34)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cmbTingkat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cmbGuru, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addContainerGap(35, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(24, 24, 24)
+                .addComponent(jLabel2)
+                .addGap(20, 20, 20)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(lblSelectedKelas))
+                .addGap(36, 36, 36)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(7, 7, 7)
+                        .addComponent(jLabel4)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
+                .addGap(4, 4, 4)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmbGuru, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(cmbTingkat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(31, 31, 31)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnCreate, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnReset, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(28, 28, 28)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(25, 25, 25))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void txtSearchKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            loadTable();
+        }
+    }//GEN-LAST:event_txtSearchKeyPressed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        loadTable();
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
+        String namaMapel = txtNama.getText();
+        Item selectedGuruItem = (Item) cmbGuru.getSelectedItem();
+        Item selectedTingkatItem = (Item) cmbTingkat.getSelectedItem();
+
+        if (namaMapel.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Mata Pelajaran tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (selectedTingkatItem == null) {
+            JOptionPane.showMessageDialog(this, "Tingkat harus dipilih.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        // Guru can be optional (NULL in DB)
+
+        try {
+            String sql = "INSERT INTO mata_pelajaran (id_tingkat, id_guru, nama) VALUES (?, ?, ?)";
+            PreparedStatement stat = conn.prepareStatement(sql);
+
+            stat.setInt(1, selectedTingkatItem.getId());
+            if (selectedGuruItem != null) {
+                stat.setInt(2, selectedGuruItem.getId());
+            } else {
+                stat.setNull(2, java.sql.Types.INTEGER);
+            }
+            stat.setString(3, namaMapel);
+
+            int rowsInserted = stat.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil ditambahkan!");
+                resetUI();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnCreateActionPerformed
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        if (selectedMataPelajaranId == null || selectedMataPelajaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih mata pelajaran yang akan diupdate.", "Mata Pelajaran Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String namaMapel = txtNama.getText();
+        Item selectedGuruItem = (Item) cmbGuru.getSelectedItem();
+        Item selectedTingkatItem = (Item) cmbTingkat.getSelectedItem();
+
+        if (namaMapel.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Mata Pelajaran tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (selectedTingkatItem == null) {
+            JOptionPane.showMessageDialog(this, "Tingkat harus dipilih.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            String sql = "UPDATE mata_pelajaran SET id_tingkat = ?, id_guru = ?, nama = ? WHERE id = ?";
+            PreparedStatement stat = conn.prepareStatement(sql);
+
+            stat.setInt(1, selectedTingkatItem.getId());
+            if (selectedGuruItem != null) {
+                stat.setInt(2, selectedGuruItem.getId());
+            } else {
+                stat.setNull(2, java.sql.Types.INTEGER);
+            }
+            stat.setString(3, namaMapel);
+            stat.setString(4, selectedMataPelajaranId);
+
+            int rowsUpdated = stat.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil diupdate!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate data. Mata Pelajaran tidak ditemukan atau data tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        if (selectedMataPelajaranId == null || selectedMataPelajaranId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih mata pelajaran yang akan dihapus.", "Mata Pelajaran Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus mata pelajaran: " + lblSelectedKelas.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            String sql = "DELETE FROM mata_pelajaran WHERE id = ?";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setString(1, selectedMataPelajaranId);
+
+            int rowsDeleted = stat.executeUpdate();
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Mata Pelajaran berhasil dihapus!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data. Mata Pelajaran tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            // Check for foreign key constraint violation (e.g., SQLState "23000")
+            if (e.getSQLState().startsWith("23")) { // General class for integrity constraint violation
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data Mata Pelajaran: Mata pelajaran ini mungkin digunakan di tabel lain (misalnya Nilai). Hapus data terkait terlebih dahulu.", "Error Hapus Data", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data Mata Pelajaran: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
+        resetUI();
+    }//GEN-LAST:event_btnResetActionPerformed
+
+    private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
+        // Assuming 'dashboard' is the name of your main menu or dashboard JFrame class
+        // Replace 'dashboard.class' with your actual dashboard class if different
+        // Example: new MainMenu().setVisible(true);
+        // For now, using a placeholder if 'dashboard' class is not defined or accessible here.
+        // You might need to import 'dashboard' class.
+        // Example:
+        // dashboard mainDashboard = new dashboard();
+        // mainDashboard.setVisible(true);
+        // this.dispose();
+        // Fallback to just disposing if dashboard class is an issue for this context
+        // For the provided structure, it seems 'dashboard' is a known class.
+        // If 'dashboard' is in the same package, no import needed.
+        // If 'dashboard' is in another package, e.g., 'mainmenu.dashboard', then import it.
+        new dashboard().setVisible(true); // Assuming dashboard is a class in the same or accessible package
+        this.dispose();
+    }//GEN-LAST:event_btnExitActionPerformed
+
+    private void tblKelasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblKelasMouseClicked
+        int baris = tblKelas.getSelectedRow();
+        if (baris != -1) {
+            selectedMataPelajaranId = tblKelas.getValueAt(baris, 0).toString();
+            String namaMapel = tblKelas.getValueAt(baris, 1).toString();
+            String namaGuru = tblKelas.getValueAt(baris, 2) != null ? tblKelas.getValueAt(baris, 2).toString() : null;
+            String namaTingkat = tblKelas.getValueAt(baris, 3).toString();
+
+            txtNama.setText(namaMapel);
+            lblSelectedKelas.setText(namaMapel);
+
+            // Select Guru in ComboBox
+            if (namaGuru != null) {
+                for (int i = 0; i < cmbGuru.getItemCount(); i++) {
+                    Item guruItem = (Item) cmbGuru.getItemAt(i);
+                    if (guruItem.getDescription().equals(namaGuru)) {
+                        cmbGuru.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            } else {
+                cmbGuru.setSelectedItem(null); // Or set to a default "None" item if you add one
+            }
+
+            // Select Tingkat in ComboBox
+            for (int i = 0; i < cmbTingkat.getItemCount(); i++) {
+                Item tingkatItem = (Item) cmbTingkat.getItemAt(i);
+                if (tingkatItem.getDescription().equals(namaTingkat)) {
+                    cmbTingkat.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+    }//GEN-LAST:event_tblKelasMouseClicked
 
     /**
      * @param args the command line arguments
@@ -78,5 +449,25 @@ public class Kelas extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCreate;
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnReset;
+    private javax.swing.JButton btnSearch;
+    private javax.swing.JButton btnUpdate;
+    private javax.swing.JComboBox<String> cmbGuru;
+    private javax.swing.JComboBox<String> cmbTahunAjaran;
+    private javax.swing.JComboBox<String> cmbTingkat;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblSelectedKelas;
+    private javax.swing.JTable tblKelas;
+    private javax.swing.JTextField txtNama;
+    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
