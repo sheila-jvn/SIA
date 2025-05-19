@@ -9,7 +9,6 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.KeyEvent;
 import database.Database; // Changed import
-import javax.swing.JSpinner;
 
 /**
  *
@@ -19,17 +18,19 @@ public class Guru extends javax.swing.JFrame {
 
     private Connection conn; // Modified: Initialize in constructor
     private DefaultTableModel tabmode;
+    private String selectedGuruId;
 
     /**
      * Creates new form guru
      */
     public Guru() {
         initComponents();
+        lblSelectedGuru.setText("-"); // Initialize label
+        selectedGuruId = null;      // Initialize ID
         try {
             conn = Database.getConnection(); // Added: Get connection from Database class
-            kosong();
-            aktif();
-            datatable();
+            reset();
+            loadTable();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
             // Optionally, disable UI components or close the form if connection is critical
@@ -37,46 +38,51 @@ public class Guru extends javax.swing.JFrame {
         }
     }
 
-    protected void aktif() {
-        txtid.requestFocus();
-        txtid.setEditable(false); // ID is auto-increment, so not user-editable
-        spnTanggalLahir.setEditor(new JSpinner.DateEditor(spnTanggalLahir, "yyyy/MM/dd"));
-    }
-
-    protected void kosong() {
-        txtid.setText(""); // Clear for display, but it's not for insertion
+    private void reset() {
+        // txtid.setText(""); // Not used for input
         txtNip.setText("");
         txtNama.setText("");
-        spnTanggalLahir.setValue(new java.util.Date());
+        spnTanggalLahir.setValue(new java.util.Date()); // Reset to current date
         txtNoTelpon.setText("");
-        txt_mapel.setText("");
-        txt_waliKelas.setText("");
+        // txt_mapel.setText(""); // Field not in guru table schema
+        // txt_waliKelas.setText(""); // Field not in guru table schema
         buttonGroup1.clearSelection();
+        lblSelectedGuru.setText("-"); // Reset selected guru label
+        selectedGuruId = null;      // Clear selected guru ID
     }
 
-    protected void datatable() {
-        Object[] Baris = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon", "Pelajaran", "Wali Kelas"};
+    private void loadTable() {
+        Object[] Baris = {"ID", "NIP", "Nama", "Tanggal Lahir", "Jenis Kelamin", "No. Telepon"};
         tabmode = new DefaultTableModel(null, Baris);
-        String cariitem = txt_cariData.getText();
+        String cariitem = txtSearch.getText();
 
         try {
-            String sql = "Select * FROM guru where id like '%" + cariitem + "%' or nama like '%" + cariitem + "%' order by id asc";
-            Statement stat = conn.createStatement();
-            ResultSet hasil = stat.executeQuery(sql);
+            String sql = "SELECT id, nip, nama, tanggal_lahir, jenis_kelamin, no_telpon FROM guru WHERE id LIKE ? OR nama LIKE ? ORDER BY id ASC";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            String searchTerm = "%" + cariitem + "%";
+            stat.setString(1, searchTerm);
+            stat.setString(2, searchTerm);
+            ResultSet hasil = stat.executeQuery();
+
             while (hasil.next()) {
+                Boolean jkBool = hasil.getObject("jenis_kelamin") != null ? hasil.getBoolean("jenis_kelamin") : null;
+                String jenisKelaminStr = "";
+                if (jkBool != null) {
+                    jenisKelaminStr = jkBool ? "Laki-laki" : "Perempuan";
+                }
+
                 tabmode.addRow(new Object[]{
-                    hasil.getString(1),
-                    hasil.getString(2),
-                    hasil.getString(3),
-                    hasil.getDate(4),
-                    hasil.getString(5),
-                    hasil.getString(6),
-                    hasil.getString(7),
-                    hasil.getString(8),});
+                    hasil.getString("id"),
+                    hasil.getString("nip"),
+                    hasil.getString("nama"),
+                    hasil.getDate("tanggal_lahir"),
+                    jenisKelaminStr,
+                    hasil.getString("no_telpon")
+                });
             }
             tblGuru.setModel(tabmode);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "data gagal dipanggil" + e);
+        } catch (SQLException e) { // Catch SQLException specifically
+            JOptionPane.showMessageDialog(null, "Data gagal dipanggil: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -110,7 +116,7 @@ public class Guru extends javax.swing.JFrame {
         btnExit = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblGuru = new javax.swing.JTable();
-        txt_cariData = new javax.swing.JTextField();
+        txtSearch = new javax.swing.JTextField();
         btnSearch = new javax.swing.JButton();
         spnTanggalLahir = new javax.swing.JSpinner();
         lblSelectedGuru = new javax.swing.JLabel();
@@ -200,9 +206,9 @@ public class Guru extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tblGuru);
 
-        txt_cariData.addKeyListener(new java.awt.event.KeyAdapter() {
+        txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                txt_cariDataKeyPressed(evt);
+                txtSearchKeyPressed(evt);
             }
         });
 
@@ -239,7 +245,7 @@ public class Guru extends javax.swing.JFrame {
                         .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(40, 40, 40)
-                        .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 254, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
@@ -322,7 +328,7 @@ public class Guru extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txt_cariData, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 315, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(25, 25, 25))
@@ -332,93 +338,173 @@ public class Guru extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        String jenis = null;
-        if (radLaki.isSelected()) {
-            jenis = "Laki-Laki";
-        } else if (radPerempuan.isSelected()) {
-            jenis = "Perempuan";
+        String nip = txtNip.getText();
+        String nama = txtNama.getText();
+        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
+        String noTelpon = txtNoTelpon.getText();
+
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Guru tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        // Explicitly including 'id' and setting it to NULL to trigger auto-increment
-        String sql = "insert into guru (id, nip, nama, tgl_lahir, jk, telp, mapel, wali_kelas) values (?, ?,?,?,?,?,?,?)";
+
+        java.sql.Date sqlTanggalLahir = null;
+        if (utilTanggalLahir != null) {
+            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
+        }
+
+        Boolean jenisKelaminDbValue = null;
+        if (radLaki.isSelected()) {
+            jenisKelaminDbValue = true; // Represents 1 for Laki-laki
+        } else if (radPerempuan.isSelected()) {
+            jenisKelaminDbValue = false; // Represents 0 for Perempuan
+        }
+
         try {
+            String sql = "INSERT INTO guru (nip, nama, tanggal_lahir, jenis_kelamin, no_telpon) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            java.util.Date utilDate = (java.util.Date) spnTanggalLahir.getValue();
+            if (nip.isEmpty()) {
+                stat.setNull(1, java.sql.Types.VARCHAR);
+            } else {
+                stat.setString(1, nip);
+            }
+            stat.setString(2, nama);
 
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+            if (sqlTanggalLahir == null) {
+                stat.setNull(3, java.sql.Types.DATE);
+            } else {
+                stat.setDate(3, sqlTanggalLahir);
+            }
 
-            stat.setNull(1, java.sql.Types.INTEGER); // For id, which is auto-increment
-            stat.setString(2, txtNip.getText());
-            stat.setString(3, txtNama.getText());
-            stat.setDate(4, sqlDate);
-            stat.setString(5, jenis);
-            stat.setString(6, txtNoTelpon.getText());
-            stat.setString(7, txt_mapel.getText());
-            stat.setString(8, txt_waliKelas.getText());
+            if (jenisKelaminDbValue == null) {
+                stat.setNull(4, java.sql.Types.BOOLEAN);
+            } else {
+                stat.setBoolean(4, jenisKelaminDbValue);
+            }
 
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil disimpan");
-            kosong();
-            txtid.requestFocus();
+            if (noTelpon.isEmpty()) {
+                stat.setNull(5, java.sql.Types.VARCHAR);
+            } else {
+                stat.setString(5, noTelpon);
+            }
+
+            int rowsInserted = stat.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Guru berhasil ditambahkan!");
+                loadTable();
+                reset();
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal disimpan " + e);
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
-        datatable();
     }//GEN-LAST:event_btnCreateActionPerformed
 
     private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
-        String jenis = null;
-        if (radLaki.isSelected()) {
-            jenis = "Laki-Laki";
-        } else if (radPerempuan.isSelected()) {
-            jenis = "Perempuan";
+        if (selectedGuruId == null || selectedGuruId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih guru yang akan diupdate.", "Guru Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+        String nip = txtNip.getText();
+        String nama = txtNama.getText();
+        java.util.Date utilTanggalLahir = (java.util.Date) spnTanggalLahir.getValue();
+        String noTelpon = txtNoTelpon.getText();
+
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Guru tidak boleh kosong.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        java.sql.Date sqlTanggalLahir = null;
+        if (utilTanggalLahir != null) {
+            sqlTanggalLahir = new java.sql.Date(utilTanggalLahir.getTime());
+        }
+
+        Boolean jenisKelaminDbValue = null;
+        if (radLaki.isSelected()) {
+            jenisKelaminDbValue = true; // Represents 1 for Laki-laki
+        } else if (radPerempuan.isSelected()) {
+            jenisKelaminDbValue = false; // Represents 0 for Perempuan
+        }
+
         try {
-            String sql = "update guru set nip=?,nama=?,tgl_lahir=?,jk=?,telp=?,mapel=?,wali_kelas=? where id='" + txtid.getText() + "'";
+            String sql = "UPDATE guru SET nip = ?, nama = ?, tanggal_lahir = ?, jenis_kelamin = ?, no_telpon = ? WHERE id = ?";
             PreparedStatement stat = conn.prepareStatement(sql);
 
-            java.util.Date utilDate = (java.util.Date) spnTanggalLahir.getValue();
+            if (nip.isEmpty()) {
+                stat.setNull(1, java.sql.Types.VARCHAR);
+            } else {
+                stat.setString(1, nip);
+            }
+            stat.setString(2, nama);
 
-            java.sql.Date sqlDate = new java.sql.Date(utilDate.getTime());
+            if (sqlTanggalLahir == null) {
+                stat.setNull(3, java.sql.Types.DATE);
+            } else {
+                stat.setDate(3, sqlTanggalLahir);
+            }
 
-            stat.setString(1, txtNip.getText());
-            stat.setString(2, txtNama.getText());
-            stat.setDate(3, sqlDate);
-            stat.setString(4, jenis);
-            stat.setString(5, txtNoTelpon.getText());
-            stat.setString(6, txt_mapel.getText());
-            stat.setString(7, txt_waliKelas.getText());
+            if (jenisKelaminDbValue == null) {
+                stat.setNull(4, java.sql.Types.BOOLEAN);
+            } else {
+                stat.setBoolean(4, jenisKelaminDbValue);
+            }
 
-            stat.executeUpdate();
-            JOptionPane.showMessageDialog(null, "data berhasil diubah");
-            kosong();
-            txtid.requestFocus();
+            if (noTelpon.isEmpty()) {
+                stat.setNull(5, java.sql.Types.VARCHAR);
+            } else {
+                stat.setString(5, noTelpon);
+            }
+            stat.setString(6, selectedGuruId);
+
+            int rowsUpdated = stat.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data Guru berhasil diupdate!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal mengupdate data guru. Guru tidak ditemukan atau data tidak berubah.", "Update Error", JOptionPane.ERROR_MESSAGE);
+            }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "data gagal diubah" + e);
+            JOptionPane.showMessageDialog(this, "Gagal mengupdate data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
-        datatable();
     }//GEN-LAST:event_btnUpdateActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
-        int ok = JOptionPane.showConfirmDialog(null, "hapus", "konfirmasi dialog", JOptionPane.YES_NO_OPTION);
-        if (ok == 0) {
-            String sql = "delete from guru where id = '" + txtid.getText() + "'";
-            try {
-                PreparedStatement stat = conn.prepareStatement(sql);
-                stat.executeUpdate();
-                JOptionPane.showMessageDialog(null, "data berhasil dihapus");
-                kosong();
-                txtid.requestFocus();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "data gagal dihapus" + e);
+        if (selectedGuruId == null || selectedGuruId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Silakan pilih guru yang akan dihapus.", "Guru Belum Dipilih", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah Anda yakin ingin menghapus guru: " + lblSelectedGuru.getText() + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        try {
+            String sql = "DELETE FROM guru WHERE id = ?";
+            PreparedStatement stat = conn.prepareStatement(sql);
+            stat.setString(1, selectedGuruId);
+
+            int rowsDeleted = stat.executeUpdate();
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(this, "Data Guru berhasil dihapus!");
+                resetUI();
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data guru. Guru tidak ditemukan.", "Hapus Error", JOptionPane.ERROR_MESSAGE);
             }
-            datatable();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menghapus data guru: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 
+    private void resetUI() {
+        loadTable();
+        reset();
+    }
+
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
-        kosong();
-        datatable();
+        resetUI();
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
@@ -428,48 +514,47 @@ public class Guru extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
-        datatable();
+        loadTable();
     }//GEN-LAST:event_btnSearchActionPerformed
 
-    private void txt_cariDataKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_cariDataKeyPressed
+    private void txtSearchKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            datatable();
+            loadTable();
         }
-    }//GEN-LAST:event_txt_cariDataKeyPressed
+    }//GEN-LAST:event_txtSearchKeyPressed
 
     private void tblGuruMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblGuruMouseClicked
-        int bar = tblGuru.getSelectedRow();
-        String a = tabmode.getValueAt(bar, 0).toString();
-        String b = tabmode.getValueAt(bar, 1).toString();
-        String c = tabmode.getValueAt(bar, 2).toString();
-        Object dObj = tabmode.getValueAt(bar, 3);
-        String e = tabmode.getValueAt(bar, 4).toString();
-        String f = tabmode.getValueAt(bar, 5).toString();
-        String g = tabmode.getValueAt(bar, 6).toString();
-        String h = tabmode.getValueAt(bar, 7).toString();
+        int baris = tblGuru.getSelectedRow();
+        if (baris != -1) {
+            selectedGuruId = tblGuru.getValueAt(baris, 0).toString();
+            String nip = tblGuru.getValueAt(baris, 1) != null ? tblGuru.getValueAt(baris, 1).toString() : "";
+            String nama = tblGuru.getValueAt(baris, 2).toString(); // Nama is NOT NULL
+            Object tanggalLahirObj = tblGuru.getValueAt(baris, 3);
+            String jenisKelaminStr = tblGuru.getValueAt(baris, 4) != null ? tblGuru.getValueAt(baris, 4).toString() : "";
+            String noTelpon = tblGuru.getValueAt(baris, 5) != null ? tblGuru.getValueAt(baris, 5).toString() : "";
 
-        txtid.setText(a);
-        txtNip.setText(b);
-        txtNama.setText(c);
-        if (dObj instanceof java.sql.Date) {
-            // Convert java.sql.Date back to java.util.Date for the spinner
-            java.sql.Date sqlDate = (java.sql.Date) dObj;
-            spnTanggalLahir.setValue(new java.util.Date(sqlDate.getTime()));
-        } else if (dObj instanceof java.util.Date) {
-            // If it's already a java.util.Date (less likely from DB but possible)
-            spnTanggalLahir.setValue((java.util.Date) dObj);
-        } else {
-            // If it's null or some other type, reset spinner to current date
-            spnTanggalLahir.setValue(new java.util.Date());
+            // txtid.setText(selectedGuruId); // Not directly using txtid for display of ID
+            txtNip.setText(nip);
+            txtNama.setText(nama);
+            lblSelectedGuru.setText(nama); // Update label with selected guru's name
+
+            if (tanggalLahirObj instanceof java.util.Date) { // This covers java.sql.Date
+                spnTanggalLahir.setValue(new java.util.Date(((java.util.Date) tanggalLahirObj).getTime()));
+            } else {
+                spnTanggalLahir.setValue(new java.util.Date()); // Default if null or other type
+            }
+
+            if ("Laki-laki".equalsIgnoreCase(jenisKelaminStr)) {
+                radLaki.setSelected(true);
+            } else if ("Perempuan".equalsIgnoreCase(jenisKelaminStr)) {
+                radPerempuan.setSelected(true);
+            } else {
+                buttonGroup1.clearSelection(); // Clear if no match or null
+            }
+            txtNoTelpon.setText(noTelpon);
+            // txt_mapel.setText(g); // Field not in guru table schema
+            // txt_waliKelas.setText(h); // Field not in guru table schema
         }
-        if ("Laki-Laki".equals(e)) {
-            radLaki.setSelected(true);
-        } else {
-            radPerempuan.setSelected(true);
-        }
-        txtNoTelpon.setText(f);
-        txt_mapel.setText(g);
-        txt_waliKelas.setText(h);
     }//GEN-LAST:event_tblGuruMouseClicked
 
     /**
@@ -533,6 +618,6 @@ public class Guru extends javax.swing.JFrame {
     private javax.swing.JTextField txtNama;
     private javax.swing.JTextField txtNip;
     private javax.swing.JTextField txtNoTelpon;
-    private javax.swing.JTextField txt_cariData;
+    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
