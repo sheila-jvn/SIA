@@ -150,7 +150,9 @@ public class dashboard extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnMenuTransaksiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuTransaksiActionPerformed
-        // TODO add your handling code here:
+        PembayaranSPP spp = new PembayaranSPP();
+        spp.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnMenuTransaksiActionPerformed
 
     private void btnMenuGuruActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuGuruActionPerformed
@@ -180,7 +182,7 @@ public class dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_btnMenuAbsensiActionPerformed
 
     private void btnMenuNilaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuNilaiActionPerformed
-        DataNilai formNilai = new DataNilai();
+        Nilai formNilai = new Nilai();
         formNilai.setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnMenuNilaiActionPerformed

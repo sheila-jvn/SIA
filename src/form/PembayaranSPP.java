@@ -135,10 +135,11 @@ public class PembayaranSPP extends javax.swing.JFrame {
 
     private void loadBulanComboBox() {
         DefaultComboBoxModel<Item> model = new DefaultComboBoxModel<>();
-        model.addElement("-- Pilih Bulan --");
+        model.addElement(new Item(0, "-- Pilih Bulan --")); // Default non-selectable item
         String[] namaBulan = {"Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"};
+        int idCounter = 1; // Start IDs from 1 for actual months
         for (String bulan : namaBulan) {
-            model.addElement(bulan);
+            model.addElement(new Item(idCounter++, bulan));
         }
         cmbBulan.setModel(model);
     }
@@ -584,13 +585,13 @@ public class PembayaranSPP extends javax.swing.JFrame {
     private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        String selectedBulan = (String) cmbBulan.getSelectedItem();
+        Item selectedBulanItem = (Item) cmbBulan.getSelectedItem();
         java.util.Date utilTanggalBayar = (java.util.Date) spnTanggalBayar.getValue();
         String strJumlahBayar = txtJumlahBayar.getText();
 
         if (selectedSiswa == null || selectedSiswa.getId() == 0
                 || selectedTahunAjaran == null || selectedTahunAjaran.getId() == 0
-                || selectedBulan == null || selectedBulan.equals("-- Pilih Bulan --")
+                || selectedBulanItem == null || selectedBulanItem.getId() == 0 // Check ID for placeholder
                 || utilTanggalBayar == null || strJumlahBayar.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field (Siswa, Tahun Ajaran, Bulan, Tanggal Bayar, Jumlah Bayar) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -619,7 +620,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
             PreparedStatement checkStat = conn.prepareStatement(checkSql);
             checkStat.setInt(1, selectedSiswa.getId());
             checkStat.setInt(2, selectedTahunAjaran.getId());
-            checkStat.setString(3, selectedBulan);
+            checkStat.setString(3, selectedBulanItem.getDescription()); // Use description for DB
             ResultSet rsCheck = checkStat.executeQuery();
             if (rsCheck.next()) {
                 JOptionPane.showMessageDialog(this, "Pembayaran untuk siswa ini, tahun ajaran ini, dan bulan ini sudah ada.", "Duplikasi Data", JOptionPane.WARNING_MESSAGE);
@@ -637,7 +638,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
             stat.setInt(2, selectedTahunAjaran.getId());
-            stat.setString(3, selectedBulan);
+            stat.setString(3, selectedBulanItem.getDescription()); // Use description for DB
             stat.setDate(4, sqlTanggalBayar);
             stat.setBigDecimal(5, jumlahBayar);
 
@@ -695,7 +696,13 @@ public class PembayaranSPP extends javax.swing.JFrame {
                 }
             }
             // Select Bulan
-            cmbBulan.setSelectedItem(namaBulan);
+            for (int i = 0; i < cmbBulan.getItemCount(); i++) {
+                Item item = (Item) cmbBulan.getItemAt(i);
+                if (item.getDescription().equals(namaBulan)) {
+                    cmbBulan.setSelectedIndex(i);
+                    break;
+                }
+            }
 
             // Trigger sisa bayar calculation for the selected student/year
             calculateSisaBayar();
@@ -723,13 +730,13 @@ public class PembayaranSPP extends javax.swing.JFrame {
 
         Item selectedSiswa = (Item) cmbSiswa.getSelectedItem();
         Item selectedTahunAjaran = (Item) cmbTahunAjaran.getSelectedItem();
-        String selectedBulan = (String) cmbBulan.getSelectedItem();
+        Item selectedBulanItem = (Item) cmbBulan.getSelectedItem();
         java.util.Date utilTanggalBayar = (java.util.Date) spnTanggalBayar.getValue();
         String strJumlahBayar = txtJumlahBayar.getText();
 
         if (selectedSiswa == null || selectedSiswa.getId() == 0
                 || selectedTahunAjaran == null || selectedTahunAjaran.getId() == 0
-                || selectedBulan == null || selectedBulan.equals("-- Pilih Bulan --")
+                || selectedBulanItem == null || selectedBulanItem.getId() == 0 // Check ID for placeholder
                 || utilTanggalBayar == null || strJumlahBayar.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field (Siswa, Tahun Ajaran, Bulan, Tanggal Bayar, Jumlah Bayar) harus diisi.", "Validasi Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -758,7 +765,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
             PreparedStatement checkStat = conn.prepareStatement(checkSql);
             checkStat.setInt(1, selectedSiswa.getId());
             checkStat.setInt(2, selectedTahunAjaran.getId());
-            checkStat.setString(3, selectedBulan);
+            checkStat.setString(3, selectedBulanItem.getDescription()); // Use description for DB
             checkStat.setInt(4, Integer.parseInt(selectedPembayaranSPPId));
             ResultSet rsCheck = checkStat.executeQuery();
             if (rsCheck.next()) {
@@ -777,7 +784,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
             PreparedStatement stat = conn.prepareStatement(sql);
             stat.setInt(1, selectedSiswa.getId());
             stat.setInt(2, selectedTahunAjaran.getId());
-            stat.setString(3, selectedBulan);
+            stat.setString(3, selectedBulanItem.getDescription()); // Use description for DB
             stat.setDate(4, sqlTanggalBayar);
             stat.setBigDecimal(5, jumlahBayar);
             stat.setInt(6, Integer.parseInt(selectedPembayaranSPPId));
