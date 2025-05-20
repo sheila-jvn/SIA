@@ -19,7 +19,7 @@ import java.awt.event.KeyEvent;
  *
  * @author erickc
  */
-public class Kelas extends javax.swing.JFrame {
+public class FormKelas extends javax.swing.JFrame {
 
     private Connection conn;
     private DefaultTableModel tabmode;
@@ -73,7 +73,7 @@ public class Kelas extends javax.swing.JFrame {
     /**
      * Creates new form Kelas
      */
-    public Kelas() {
+    public FormKelas() {
         initComponents();
         lblSelectedKelas.setText("-");
         selectedKelasId = null;
@@ -648,20 +648,21 @@ public class Kelas extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Kelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormKelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Kelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormKelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Kelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormKelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Kelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(FormKelas.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Kelas().setVisible(true);
+                new FormKelas().setVisible(true);
             }
         });
     }
@@ -673,9 +674,9 @@ public class Kelas extends javax.swing.JFrame {
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JComboBox<Item> cmbGuru;
-    private javax.swing.JComboBox<Item> cmbTahunAjaran;
-    private javax.swing.JComboBox<Item> cmbTingkat;
+    private javax.swing.JComboBox<String> cmbGuru;
+    private javax.swing.JComboBox<String> cmbTahunAjaran;
+    private javax.swing.JComboBox<String> cmbTingkat;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
