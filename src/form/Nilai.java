@@ -250,7 +250,7 @@ public class Nilai extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        cmbKelas = new javax.swing.JComboBox<>();
+        cmbKelas = new javax.swing.JComboBox<Item>();
         lblSelectedNilai = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
@@ -261,21 +261,21 @@ public class Nilai extends javax.swing.JFrame {
         btnReset = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         txtKeterangan = new javax.swing.JTextArea();
-        cmbTahunAjaran = new javax.swing.JComboBox<>();
+        cmbTahunAjaran = new javax.swing.JComboBox<Item>();
         jLabel4 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         btnUpdate = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         jLabel10 = new javax.swing.JLabel();
         btnCreate = new javax.swing.JButton();
-        cmbJenisNilai = new javax.swing.JComboBox<>();
+        cmbJenisNilai = new javax.swing.JComboBox<Item>();
         btnDelete = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
-        cmbSiswa = new javax.swing.JComboBox<>();
+        cmbSiswa = new javax.swing.JComboBox<Item>();
         spnTanggal = new javax.swing.JSpinner();
         jLabel8 = new javax.swing.JLabel();
-        cmbMataPelajaran = new javax.swing.JComboBox<>();
+        cmbMataPelajaran = new javax.swing.JComboBox<Item>();
         jLabel11 = new javax.swing.JLabel();
         lblNilai = new javax.swing.JLabel();
         txtNilai = new javax.swing.JTextField();

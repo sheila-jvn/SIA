@@ -194,10 +194,10 @@ public class MataPelajaran extends javax.swing.JFrame {
         txtSearch = new javax.swing.JTextField();
         btnSearch = new javax.swing.JButton();
         lblSelectedMataPelajaran = new javax.swing.JLabel();
-        cmbGuru = new javax.swing.JComboBox<>();
+        cmbGuru = new javax.swing.JComboBox<Item>();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        cmbTingkat = new javax.swing.JComboBox<>();
+        cmbTingkat = new javax.swing.JComboBox<Item>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 

@@ -20,9 +20,9 @@ public class KoneksiDB {
     public static Connection koneksi() {
         if (mysqlconfig == null) {
             try {
-                String url = "jdbc:mysql://localhost/db_sia_sma";
+                String url = "jdbc:mysql://localhost/sia_sma";
                 String user = "root";
-                String pass = "root";
+                String pass = "";
 
                 DriverManager.registerDriver(new com.mysql.cj.jdbc.Driver());
 

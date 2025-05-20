@@ -22,10 +22,10 @@ public class Database {
     // If you are using an older MySQL Connector/J 5.x, the driver class is:
     // private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
 
-    private static final String DB_URL = "jdbc:mysql://localhost/db_sia_sma";
+    private static final String DB_URL = "jdbc:mysql://localhost/sia_sma";
 
     private static final String USER = "root";
-    private static final String PASS = "root";
+    private static final String PASS = "";
 
     // Private constructor to prevent instantiation (Singleton Pattern)
     private Database() {
