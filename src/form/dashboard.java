@@ -172,7 +172,9 @@ public class dashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_btnKeluarActionPerformed
 
     private void btnMenuKelasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuKelasActionPerformed
-        
+        FormKelas kls = new FormKelas();
+        kls.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnMenuKelasActionPerformed
 
     private void btnMenuAbsensiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuAbsensiActionPerformed

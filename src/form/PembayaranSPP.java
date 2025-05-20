@@ -18,6 +18,11 @@ import java.text.SimpleDateFormat;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import java.util.HashMap;
+import java.util.Map;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.view.JasperViewer;
 
 /**
  *
@@ -77,6 +82,22 @@ public class PembayaranSPP extends javax.swing.JFrame {
             return result;
         }
     }
+    
+    public void cetak(int idSiswa, int idTahunAjaran) {
+    try {
+        String path = "./src/form/spp.jasper";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("idSiswa", idSiswa);
+        parameters.put("idTahunAjaran", idTahunAjaran);
+        JasperPrint print = JasperFillManager.fillReport(path, parameters, conn);
+        JasperViewer.viewReport(print, false);
+
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(rootPane, "Gagal mencetak laporan: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+}
+
 
     /**
      * Creates new form PembayaranSPP
@@ -435,7 +456,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
                 .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(68, 68, 68))
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(350, 350, 350)
                         .addComponent(jLabel2))
@@ -451,7 +472,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(jLabel4)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                     .addComponent(cmbTahunAjaran, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGroup(layout.createSequentialGroup()
                                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -462,7 +483,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
                                         .addComponent(txtJumlahBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(lblSelectedNilai1)
                                         .addComponent(cmbSiswa, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 129, Short.MAX_VALUE)
+                        .addGap(129, 129, 129)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel7)
@@ -477,12 +498,12 @@ public class PembayaranSPP extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(spnTanggalBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(cmbBulan, 0, 249, Short.MAX_VALUE)
+                                .addComponent(cmbBulan, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(jLabel10)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGap(67, 67, 67)
                                     .addComponent(lblSisaBayar))
-                                .addComponent(jScrollPane2)))))
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(57, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGap(14, 14, 14)
@@ -645,6 +666,7 @@ public class PembayaranSPP extends javax.swing.JFrame {
             int rowsInserted = stat.executeUpdate();
             if (rowsInserted > 0) {
                 JOptionPane.showMessageDialog(this, "Data pembayaran SPP berhasil ditambahkan!");
+                cetak(selectedSiswa.getId(), selectedTahunAjaran.getId());
                 resetUI(); // This will also recalculate sisa bayar
             }
         } catch (SQLException e) {

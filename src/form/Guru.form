@@ -35,32 +35,6 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
-                      <EmptySpace min="380" pref="380" max="-2" attributes="0"/>
-                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <EmptySpace min="120" pref="120" max="-2" attributes="0"/>
-                      <Component id="btnCreate" min="-2" pref="93" max="-2" attributes="0"/>
-                      <EmptySpace min="43" pref="43" max="-2" attributes="0"/>
-                      <Component id="btnUpdate" min="-2" pref="93" max="-2" attributes="0"/>
-                      <EmptySpace min="43" pref="43" max="-2" attributes="0"/>
-                      <Component id="btnDelete" min="-2" pref="93" max="-2" attributes="0"/>
-                      <EmptySpace min="46" pref="46" max="-2" attributes="0"/>
-                      <Component id="btnReset" min="-2" pref="93" max="-2" attributes="0"/>
-                      <EmptySpace min="45" pref="45" max="-2" attributes="0"/>
-                      <Component id="btnExit" min="-2" pref="93" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="40" pref="40" max="-2" attributes="0"/>
-                      <Component id="txtSearch" min="-2" pref="254" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="btnSearch" min="-2" pref="93" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
-                      <Component id="jScrollPane1" min="-2" pref="876" max="-2" attributes="0"/>
-                  </Group>
                   <Group type="102" alignment="1" attributes="0">
                       <EmptySpace min="37" pref="37" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -103,6 +77,39 @@
                               </Group>
                           </Group>
                       </Group>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="380" pref="380" max="-2" attributes="0"/>
+                              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="120" pref="120" max="-2" attributes="0"/>
+                              <Component id="btnCreate" min="-2" pref="93" max="-2" attributes="0"/>
+                              <EmptySpace min="43" pref="43" max="-2" attributes="0"/>
+                              <Component id="btnUpdate" min="-2" pref="93" max="-2" attributes="0"/>
+                              <EmptySpace min="43" pref="43" max="-2" attributes="0"/>
+                              <Component id="btnDelete" min="-2" pref="93" max="-2" attributes="0"/>
+                              <EmptySpace min="46" pref="46" max="-2" attributes="0"/>
+                              <Component id="btnReset" min="-2" pref="93" max="-2" attributes="0"/>
+                              <EmptySpace min="45" pref="45" max="-2" attributes="0"/>
+                              <Component id="btnExit" min="-2" pref="93" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="40" pref="40" max="-2" attributes="0"/>
+                              <Component id="txtSearch" min="-2" pref="254" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="btnSearch" min="-2" pref="93" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
+                              <Component id="btnPrint" min="-2" pref="93" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
+                              <Component id="jScrollPane1" min="-2" pref="876" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="36" max="32767" attributes="0"/>
@@ -151,6 +158,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnSearch" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
                   <Component id="txtSearch" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
+                  <Component id="btnPrint" alignment="3" min="-2" pref="33" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jScrollPane1" min="-2" pref="315" max="-2" attributes="0"/>
@@ -326,6 +334,14 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="[PLACEHOLDER]"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnPrint">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Print"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPrintActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

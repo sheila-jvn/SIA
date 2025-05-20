@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="200c7fd7-3a9e-4ce6-bc93-a593362d2695">
+	<property name="ireport.zoom" value="2.8531167061100087"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="288"/>
+	<queryString language="SQL">
+    <![CDATA[
+        SELECT 
+            ps.id AS pembayaran_spp_id,
+            ps.id_siswa AS pembayaran_spp_id_siswa,
+            ps.id_tahun_ajaran AS pembayaran_spp_id_tahun_ajaran,
+            ps.bulan AS pembayaran_spp_bulan,
+            ps.tanggal_bayar AS pembayaran_spp_tanggal_bayar,
+            ps.jumlah_bayar AS pembayaran_spp_jumlah_bayar,
+            ta.id AS tahun_ajaran_id,
+            ta.nama AS tahun_ajaran_nama,
+            ta.tahun_mulai AS tahun_ajaran_tahun_mulai,
+            ta.tahun_selesai AS tahun_ajaran_tahun_selesai,
+            s.id AS siswa_id,
+            s.nis AS siswa_nis,
+            s.nisn AS siswa_nisn,
+            s.nama AS siswa_nama,
+            s.no_kk AS siswa_no_kk,
+            s.tanggal_lahir AS siswa_tanggal_lahir,
+            s.jenis_kelamin AS siswa_jenis_kelamin,
+            s.nama_ayah AS siswa_nama_ayah,
+            s.nama_ibu AS siswa_nama_ibu,
+            s.nik_ayah AS siswa_nik_ayah,
+            s.nik_ibu AS siswa_nik_ibu,
+            s.alamat AS siswa_alamat
+        FROM pembayaran_spp ps
+        JOIN siswa s ON ps.id_siswa = s.id
+        JOIN tahun_ajaran ta ON ps.id_tahun_ajaran = ta.id
+        WHERE ps.id_siswa = $P{idSiswa} AND ps.id_tahun_ajaran = $P{idTahunAjaran}
+        ORDER BY ps.bulan
+    ]]>
+</queryString>
+
+
+	<field name="pembayaran_spp_id" class="java.lang.Integer"/>
+	<field name="pembayaran_spp_id_siswa" class="java.lang.Integer"/>
+	<field name="pembayaran_spp_id_tahun_ajaran" class="java.lang.Integer"/>
+	<field name="pembayaran_spp_bulan" class="java.lang.String"/>
+	<field name="pembayaran_spp_tanggal_bayar" class="java.sql.Date"/>
+	<field name="pembayaran_spp_jumlah_bayar" class="java.math.BigDecimal"/>
+	<field name="tahun_ajaran_id" class="java.lang.Integer"/>
+	<field name="tahun_ajaran_nama" class="java.lang.String"/>
+	<field name="tahun_ajaran_tahun_mulai" class="java.sql.Date"/>
+	<field name="tahun_ajaran_tahun_selesai" class="java.sql.Date"/>
+	<field name="siswa_id" class="java.lang.Integer"/>
+	<field name="siswa_nis" class="java.lang.String"/>
+	<field name="siswa_nisn" class="java.lang.String"/>
+	<field name="siswa_nama" class="java.lang.String"/>
+	<field name="siswa_no_kk" class="java.lang.String"/>
+	<field name="siswa_tanggal_lahir" class="java.sql.Date"/>
+	<field name="siswa_jenis_kelamin" class="java.lang.Boolean"/>
+	<field name="siswa_nama_ayah" class="java.lang.String"/>
+	<field name="siswa_nama_ibu" class="java.lang.String"/>
+	<field name="siswa_nik_ayah" class="java.lang.String"/>
+	<field name="siswa_nik_ibu" class="java.lang.String"/>
+	<field name="siswa_alamat" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="22" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch">
+			<staticText>
+				<reportElement x="166" y="0" width="231" height="21" uuid="bd8e32b3-3bdc-4aa6-b66f-644f44fca9fc"/>
+				<textElement textAlignment="Center">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<text><![CDATA[KARTU PEMBAYARAN SPP]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="125" splitType="Stretch">
+			<staticText>
+				<reportElement x="15" y="3" width="42" height="20" uuid="0bf57c8a-0da7-4d57-92af-fdb7bbfb7658"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Nama :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="15" y="39" width="42" height="20" uuid="88ec878e-0891-45ca-b2dc-182faa63a413"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[NIS :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="355" y="3" width="69" height="20" uuid="2f7790b0-ca02-4faa-8322-ddc7eea71ca5"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Tahun Ajaran :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="26" y="97" width="31" height="20" uuid="8f83a422-5ea0-4719-ba68-39eb59711d61"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[No. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="124" y="97" width="31" height="20" uuid="eca443e4-95da-4e4f-8765-5042156c6df6"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Bulan]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="236" y="97" width="43" height="20" uuid="69b9c089-38bb-4061-a498-fcc32409dc56"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Tanggal]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="339" y="97" width="85" height="20" uuid="00d7640b-83d9-4e48-8865-cb28ebc0dd6a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Pembayaran SPP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="479" y="97" width="43" height="20" uuid="5753e4fa-9186-446c-bbc5-f4a23b65c1e1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<text><![CDATA[Paraf]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="434" y="3" width="100" height="20" uuid="8383ac70-84ad-4415-bd0c-a134e2a65328"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{tahun_ajaran_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="60" y="3" width="100" height="20" uuid="ab8894aa-cae4-42fd-809c-a0e9d89d5fef"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{siswa_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="60" y="39" width="100" height="20" uuid="02836922-e863-4d16-99ed-74cbe5e4c3b2"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{siswa_nis}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="89" width="555" height="1" uuid="6c49f394-bafb-4bb1-a2d9-f2bca0d2916f"/>
+			</line>
+			<line>
+				<reportElement x="0" y="124" width="555" height="1" uuid="62a04d2e-9675-443f-a8f6-ec1a4a0633ae"/>
+			</line>
+			<line>
+				<reportElement x="82" y="90" width="1" height="34" uuid="ca28faa8-fbf7-469e-a63b-f01469572ac5"/>
+			</line>
+			<line>
+				<reportElement x="200" y="90" width="1" height="34" uuid="9c5050fa-3d0d-42ed-8a27-eca565f794b9"/>
+			</line>
+			<line>
+				<reportElement x="319" y="90" width="1" height="34" uuid="bbf8c2c8-6b4d-404c-87fa-545449eb2ecb"/>
+			</line>
+			<line>
+				<reportElement x="453" y="90" width="1" height="34" uuid="9eba5b42-08d3-4995-aa64-ecfeb1c4856b"/>
+			</line>
+			<line>
+				<reportElement x="554" y="90" width="1" height="34" uuid="b7f05b3b-eb5e-4f5f-b398-11f7cbd318f3"/>
+			</line>
+			<line>
+				<reportElement x="0" y="90" width="1" height="34" uuid="ed0af9af-3c05-449f-9234-0431aec95d1a"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="45" splitType="Stretch">
+			<textField>
+				<reportElement x="22" y="13" width="38" height="20" uuid="0626d04b-a0f8-4778-9f2b-9e0e4e4a1e01"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="102" y="13" width="74" height="20" uuid="24b38bb9-55c2-40c9-b56d-2e27bf8dbfb2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{pembayaran_spp_bulan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="223" y="13" width="72" height="20" uuid="12643beb-6b57-4dbb-bd2c-6de3edeb8181"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{pembayaran_spp_tanggal_bayar}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="341" y="13" width="83" height="20" uuid="b7cc5b31-13a5-4220-97e1-0e9c5145cefc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{pembayaran_spp_jumlah_bayar}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="82" y="0" width="1" height="44" uuid="2a5ff471-db87-4e6f-aa71-e46c1476dfc4"/>
+			</line>
+			<line>
+				<reportElement x="1" y="44" width="554" height="1" uuid="c8b62162-06d9-4d1d-b1e1-7267bdcae62a"/>
+			</line>
+			<line>
+				<reportElement x="0" y="1" width="1" height="44" uuid="1b094642-7b52-4f4e-9677-a06b701a0903"/>
+			</line>
+			<line>
+				<reportElement x="200" y="0" width="1" height="44" uuid="25e2cbf8-29f1-47c1-96d2-911cba3b13e3"/>
+			</line>
+			<line>
+				<reportElement x="319" y="0" width="1" height="44" uuid="5ff75217-4a4e-427c-b5d4-fd56b27c3a75"/>
+			</line>
+			<line>
+				<reportElement x="453" y="0" width="1" height="44" uuid="36640bc0-5545-4d19-b14b-3c01f7039e83"/>
+			</line>
+			<line>
+				<reportElement x="554" y="0" width="1" height="44" uuid="7035f2bc-bede-4fd7-8550-fcf2c4e7b1c8"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

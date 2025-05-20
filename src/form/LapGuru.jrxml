@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5d2d3a9e-4e7c-4b29-9cce-0016904baa60">
+	<property name="ireport.zoom" value="3.138428376721004"/>
+	<property name="ireport.x" value="1754"/>
+	<property name="ireport.y" value="382"/>
+	<queryString language="SQL">
+		<![CDATA[SELECT
+     guru.`id` AS guru_id,
+     guru.`nip` AS guru_nip,
+     guru.`nama` AS guru_nama,
+     guru.`tanggal_lahir` AS guru_tanggal_lahir,
+     guru.`jenis_kelamin` AS guru_jenis_kelamin,
+     guru.`no_telpon` AS guru_no_telpon
+FROM
+     `guru` guru]]>
+	</queryString>
+	<field name="guru_id" class="java.lang.Integer"/>
+	<field name="guru_nip" class="java.lang.String"/>
+	<field name="guru_nama" class="java.lang.String"/>
+	<field name="guru_tanggal_lahir" class="java.sql.Date"/>
+	<field name="guru_jenis_kelamin" class="java.lang.Boolean"/>
+	<field name="guru_no_telpon" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="14" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement x="281" y="0" width="251" height="33" uuid="308a5ada-c906-4707-a6b9-b6a932e53023"/>
+				<textElement textAlignment="Center">
+					<font size="24" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Laporan Data Guru]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="38" splitType="Stretch">
+			<staticText>
+				<reportElement x="36" y="11" width="30" height="13" uuid="bbfeb70b-943e-4ae6-9cfa-f24e60761eb4"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="152" y="11" width="30" height="13" uuid="c33ba192-d1cd-4a06-be6a-c5bf299f7cb8"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[NIP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="294" y="11" width="30" height="13" uuid="dcabdddc-e780-4a8a-8c1a-e2e3684912d3"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Nama]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="411" y="11" width="70" height="13" uuid="212d5ba2-44a9-44d0-9eef-eac439b2fb7e"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tanggal Lahir]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="554" y="11" width="70" height="13" uuid="5f61587b-53d6-4507-a129-61d0b3f15793"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Jenis Kelamin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="693" y="11" width="70" height="13" uuid="1be5ad54-d600-4734-9769-66be6f4c5662"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[No. Telepon]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="36" width="802" height="1" uuid="510ae31e-5c77-4107-be7d-9b2ef40c4081"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="42" splitType="Stretch">
+			<textField>
+				<reportElement x="11" y="12" width="82" height="20" uuid="147b74e9-d0d3-4acf-8701-a9826c96c10e"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="127" y="12" width="78" height="20" uuid="0f4ddf61-2b3f-489a-b3e5-70e4a6adac21"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_nip}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="260" y="12" width="100" height="20" uuid="c13a15af-0a45-4f56-bad0-42f434b064d8"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="405" y="12" width="89" height="20" uuid="43244427-e0d5-4893-b0f4-3374fbcb3c02"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_tanggal_lahir}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="546" y="12" width="86" height="20" uuid="015452f5-c5fa-4418-8be8-36c78da16af5"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_jenis_kelamin} ? "Laki-laki" : "Perempuan"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="678" y="12" width="100" height="20" uuid="093ea8ab-e331-4e3b-bcdc-c8a54925b4c2"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{guru_no_telpon}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="40" width="802" height="1" uuid="bd58e587-8901-406b-b22e-d3158dca144e"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>
