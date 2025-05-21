@@ -2,10 +2,11 @@
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="200c7fd7-3a9e-4ce6-bc93-a593362d2695">
 	<property name="ireport.zoom" value="2.8531167061100087"/>
 	<property name="ireport.x" value="0"/>
-	<property name="ireport.y" value="288"/>
+	<property name="ireport.y" value="240"/>
+	<parameter name="idSiswa" class="java.lang.String"/>
+	<parameter name="idTahunAjaran" class="java.lang.String"/>
 	<queryString language="SQL">
-    <![CDATA[
-        SELECT 
+		<![CDATA[SELECT 
             ps.id AS pembayaran_spp_id,
             ps.id_siswa AS pembayaran_spp_id_siswa,
             ps.id_tahun_ajaran AS pembayaran_spp_id_tahun_ajaran,
@@ -32,11 +33,9 @@
         JOIN siswa s ON ps.id_siswa = s.id
         JOIN tahun_ajaran ta ON ps.id_tahun_ajaran = ta.id
         WHERE ps.id_siswa = $P{idSiswa} AND ps.id_tahun_ajaran = $P{idTahunAjaran}
-        ORDER BY ps.bulan
-    ]]>
-</queryString>
-
-
+        ORDER BY ps.tanggal_bayar
+]]>
+	</queryString>
 	<field name="pembayaran_spp_id" class="java.lang.Integer"/>
 	<field name="pembayaran_spp_id_siswa" class="java.lang.Integer"/>
 	<field name="pembayaran_spp_id_tahun_ajaran" class="java.lang.Integer"/>

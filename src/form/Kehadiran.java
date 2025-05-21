@@ -76,6 +76,7 @@ public class Kehadiran extends javax.swing.JFrame {
      */
     public Kehadiran() {
         initComponents();
+        setLocationRelativeTo(null);
         lblSelectedAbsensi.setText("-");
         selectedKehadiranId = null;
         spnTanggal.setEditor(new JSpinner.DateEditor(spnTanggal, "yyyy-MM-dd")); // Set date format

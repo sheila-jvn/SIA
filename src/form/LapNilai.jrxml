@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="78daf8b3-b784-4cd1-9608-10b338441d8c">
+	<property name="ireport.zoom" value="1.0000000000000016"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[SELECT
+    nilai.id AS nilai_id,
+    nilai.id_siswa AS nilai_id_siswa,
+    nilai.id_mata_pelajaran AS nilai_id_mata_pelajaran,
+    nilai.id_kelas AS nilai_id_kelas,
+    nilai.id_tahun_ajaran AS nilai_id_tahun_ajaran,
+    nilai.id_jenis_nilai AS nilai_id_jenis_nilai,
+    nilai.nilai AS nilai_nilai,
+    nilai.tanggal_penilaian AS nilai_tanggal_penilaian,
+    nilai.keterangan AS nilai_keterangan,
+    nilai_jenis.id AS nilai_jenis_id,
+    nilai_jenis.nama AS nilai_jenis_nama,
+    siswa.id AS siswa_id,
+    siswa.nis AS siswa_nis,
+    siswa.nisn AS siswa_nisn,
+    siswa.nama AS siswa_nama,
+    siswa.no_kk AS siswa_no_kk,
+    siswa.tanggal_lahir AS siswa_tanggal_lahir,
+    siswa.jenis_kelamin AS siswa_jenis_kelamin,
+    siswa.nama_ayah AS siswa_nama_ayah,
+    siswa.nama_ibu AS siswa_nama_ibu,
+    siswa.nik_ayah AS siswa_nik_ayah,
+    siswa.nik_ibu AS siswa_nik_ibu,
+    siswa.alamat AS siswa_alamat,
+    tahun_ajaran.id AS tahun_ajaran_id,
+    tahun_ajaran.nama AS tahun_ajaran_nama,
+    tahun_ajaran.tahun_mulai AS tahun_ajaran_tahun_mulai,
+    tahun_ajaran.tahun_selesai AS tahun_ajaran_tahun_selesai,
+    kelas.id AS kelas_id,
+    kelas.id_tahun_ajaran AS kelas_id_tahun_ajaran,
+    kelas.id_tingkat AS kelas_id_tingkat,
+    kelas.id_guru_wali AS kelas_id_guru_wali,
+    kelas.nama AS kelas_nama,
+    mata_pelajaran.id AS mata_pelajaran_id,
+    mata_pelajaran.id_tingkat AS mata_pelajaran_id_tingkat,
+    mata_pelajaran.id_guru AS mata_pelajaran_id_guru,
+    mata_pelajaran.nama AS mata_pelajaran_nama
+FROM
+    nilai_jenis nilai_jenis
+    INNER JOIN nilai nilai ON nilai_jenis.id = nilai.id_jenis_nilai
+    INNER JOIN siswa siswa ON nilai.id_siswa = siswa.id
+    INNER JOIN tahun_ajaran tahun_ajaran ON nilai.id_tahun_ajaran = tahun_ajaran.id
+    INNER JOIN kelas kelas ON nilai.id_kelas = kelas.id AND tahun_ajaran.id = kelas.id_tahun_ajaran 
+    INNER JOIN mata_pelajaran mata_pelajaran ON nilai.id_mata_pelajaran = mata_pelajaran.id
+ORDER BY
+    nilai.id ASC;]]>
+	</queryString>
+	<field name="nilai_id" class="java.lang.Integer"/>
+	<field name="nilai_id_siswa" class="java.lang.Integer"/>
+	<field name="nilai_id_mata_pelajaran" class="java.lang.Integer"/>
+	<field name="nilai_id_kelas" class="java.lang.Integer"/>
+	<field name="nilai_id_tahun_ajaran" class="java.lang.Integer"/>
+	<field name="nilai_id_jenis_nilai" class="java.lang.Integer"/>
+	<field name="nilai_nilai" class="java.lang.Float"/>
+	<field name="nilai_tanggal_penilaian" class="java.sql.Date"/>
+	<field name="nilai_keterangan" class="java.lang.String"/>
+	<field name="nilai_jenis_id" class="java.lang.Integer"/>
+	<field name="nilai_jenis_nama" class="java.lang.String"/>
+	<field name="siswa_id" class="java.lang.Integer"/>
+	<field name="siswa_nis" class="java.lang.String"/>
+	<field name="siswa_nisn" class="java.lang.String"/>
+	<field name="siswa_nama" class="java.lang.String"/>
+	<field name="siswa_no_kk" class="java.lang.String"/>
+	<field name="siswa_tanggal_lahir" class="java.sql.Date"/>
+	<field name="siswa_jenis_kelamin" class="java.lang.Boolean"/>
+	<field name="siswa_nama_ayah" class="java.lang.String"/>
+	<field name="siswa_nama_ibu" class="java.lang.String"/>
+	<field name="siswa_nik_ayah" class="java.lang.String"/>
+	<field name="siswa_nik_ibu" class="java.lang.String"/>
+	<field name="siswa_alamat" class="java.lang.String"/>
+	<field name="tahun_ajaran_id" class="java.lang.Integer"/>
+	<field name="tahun_ajaran_nama" class="java.lang.String"/>
+	<field name="tahun_ajaran_tahun_mulai" class="java.sql.Date"/>
+	<field name="tahun_ajaran_tahun_selesai" class="java.sql.Date"/>
+	<field name="kelas_id" class="java.lang.Integer"/>
+	<field name="kelas_id_tahun_ajaran" class="java.lang.Integer"/>
+	<field name="kelas_id_tingkat" class="java.lang.Integer"/>
+	<field name="kelas_id_guru_wali" class="java.lang.Integer"/>
+	<field name="kelas_nama" class="java.lang.String"/>
+	<field name="mata_pelajaran_id" class="java.lang.Integer"/>
+	<field name="mata_pelajaran_id_tingkat" class="java.lang.Integer"/>
+	<field name="mata_pelajaran_id_guru" class="java.lang.Integer"/>
+	<field name="mata_pelajaran_nama" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="15" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="86" splitType="Stretch">
+			<staticText>
+				<reportElement x="271" y="11" width="266" height="45" uuid="c1569fd5-b97c-4010-b230-9b3b85f0d605"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="24" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Laporan Data Nilai]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="42" splitType="Stretch">
+			<staticText>
+				<reportElement x="20" y="11" width="35" height="20" uuid="5e9bc0c3-9103-4df2-9487-916f851912b2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="86" y="11" width="61" height="20" uuid="eda977a1-8047-46f2-9db0-145e087a1e74"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Nama Siswa]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="191" y="11" width="78" height="20" uuid="67837e2f-ef1c-4901-a304-9d5dc97e18b7"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Mata Pelajaran]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="310" y="11" width="55" height="20" uuid="bef24959-7206-4824-b837-e62609b86e72"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Kelas]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="409" y="11" width="64" height="20" uuid="7088d9c3-3397-4986-bf3a-82d5766af023"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Tahun Ajaran]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="525" y="11" width="64" height="20" uuid="967f1b7d-5d17-44a7-995a-429a72b78585"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Jenis Nilai]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="633" y="11" width="49" height="20" uuid="3539737d-7ebf-430a-ac07-695aa4d0d1e8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Nilai]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="716" y="11" width="60" height="20" uuid="86dced8b-b06f-4c31-bba5-228c12a4263e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Keterangan]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="40" width="802" height="1" uuid="554debaa-4218-404b-8c4c-aa7b60c6a839"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="55" splitType="Stretch">
+			<textField>
+				<reportElement x="16" y="15" width="44" height="20" uuid="475851bb-74b7-4cf2-982b-92a192600304"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nilai_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="76" y="15" width="81" height="20" uuid="1dac4e60-c586-40c7-b193-879a1f7aa2cb"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{siswa_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="189" y="15" width="85" height="20" uuid="e2ef54bf-74be-45a6-96d7-f4c7cd0cdbf4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{mata_pelajaran_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="299" y="15" width="76" height="20" uuid="75b7c5f5-bb1f-494a-be7a-c5d9ffba1f51"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{kelas_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="395" y="15" width="90" height="20" uuid="13acc3fc-b219-4569-99d4-8fe93a0c77d9"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{tahun_ajaran_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="512" y="15" width="92" height="20" uuid="ed5ce894-6dc3-405a-9b7e-2fcfb8011747"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nilai_jenis_nama}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="622" y="15" width="74" height="20" uuid="3d3e8f68-2f3e-4abe-9559-2ad7d0f54873"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nilai_nilai}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="712" y="15" width="71" height="20" uuid="d4a9577d-c5ad-4090-9790-7fe8b21d4a54"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nilai_keterangan}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="53" width="802" height="1" uuid="240a8595-934f-4c9f-8ca0-566a8f07db7e"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

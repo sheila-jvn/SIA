@@ -29,6 +29,7 @@ public class Guru extends javax.swing.JFrame {
      */
     public Guru() {
         initComponents();
+        setLocationRelativeTo(null);
         lblSelectedGuru.setText("-"); // Initialize label
         selectedGuruId = null;      // Initialize ID
         try {
