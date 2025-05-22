@@ -637,7 +637,7 @@ public class Siswa extends javax.swing.JFrame {
 
     private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
         try {
-            String path = "./src/form/LapGuru.jasper";
+            String path = "./src/form/LapSiswa.jasper";
             HashMap parameter = new HashMap();
             JasperPrint print = JasperFillManager.fillReport(path, parameter,conn);
             JasperViewer.viewReport(print, false);
